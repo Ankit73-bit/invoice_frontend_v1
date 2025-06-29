@@ -6,8 +6,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
-import { useLoaderStore } from "@/store/loaderStore";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export function LoginForm({
   className,
@@ -21,14 +20,12 @@ export function LoginForm({
 
   const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
-  const { showLoader, hideLoader } = useLoaderStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       if (showSignUp) {
-        showLoader();
         const res = await api.post("/auth/register", {
           fullName,
           companyName,
@@ -37,25 +34,21 @@ export function LoginForm({
         });
         console.log(res);
 
+        toast.success("Login Successfully!");
         setUser(res?.data?.user);
-        hideLoader();
         navigate("/dashboard");
       } else {
-        showLoader();
         const res = await api.post("/auth/login", {
           email,
           password,
         });
 
+        toast.success("Login Successfully!");
         setUser(res?.data?.user);
-        hideLoader();
         navigate("/dashboard");
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      toast("Wrong credentials!");
-    } finally {
-      hideLoader();
+      toast.error("Invalid credentials!");
     }
   };
 
