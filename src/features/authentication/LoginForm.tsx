@@ -3,10 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { api } from "@/lib/api";
+import { useCompanies } from "@/hooks/useCompanies";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/authStore";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 export function LoginForm({
   className,
@@ -14,41 +20,22 @@ export function LoginForm({
 }: React.ComponentProps<"form">) {
   const [showSignUp, setShowSignUp] = useState(false);
   const [fullName, setFullName] = useState("");
-  const [companyName, setCompanyName] = useState("");
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const navigate = useNavigate();
-  const setUser = useAuthStore((state) => state.setUser);
+  const { companies } = useCompanies();
+  const { login, register } = useAuth();
+  const user = useAuthStore((s) => s.user);
+  console.log(user);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      if (showSignUp) {
-        const res = await api.post("/auth/register", {
-          fullName,
-          companyName,
-          email,
-          password,
-        });
-        console.log(res);
-
-        toast.success("Login Successfully!");
-        setUser(res?.data?.user);
-        navigate("/dashboard");
-      } else {
-        const res = await api.post("/auth/login", {
-          email,
-          password,
-        });
-
-        toast.success("Login Successfully!");
-        setUser(res?.data?.user);
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      toast.error("Invalid credentials!");
+    if (showSignUp) {
+      register(fullName, selectedCompanyId, email, password);
+    } else {
+      login(email, password);
     }
   };
 
@@ -82,14 +69,18 @@ export function LoginForm({
             </div>
             <div className="grid gap-3">
               <Label htmlFor="companyName">Company Name</Label>
-              <Input
-                id="companyName"
-                type="text"
-                placeholder="Paras Print"
-                onChange={(e) => setCompanyName(e.target.value)}
-                value={companyName}
-                required
-              />
+              <Select onValueChange={(value) => setSelectedCompanyId(value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a company" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((company) => (
+                    <SelectItem key={company._id} value={company._id}>
+                      {company.companyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </>
         )}
