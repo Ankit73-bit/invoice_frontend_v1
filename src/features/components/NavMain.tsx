@@ -1,6 +1,5 @@
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
+import { IconCirclePlusFilled, type Icon } from "@tabler/icons-react";
 
-import { Button } from "@/components/ui/button";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -8,6 +7,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export function NavMain({
   items,
@@ -26,26 +27,33 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="Quick Create"
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+              asChild
             >
-              <IconCirclePlusFilled />
-              <span>Quick Create</span>
+              <NavLink to="/invoice/new">
+                <IconCirclePlusFilled />
+                <span>Create Invoice</span>
+              </NavLink>
             </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <IconMail />
-              <span className="sr-only">Inbox</span>
-            </Button>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
+              <SidebarMenuButton asChild tooltip={item.title}>
+                <NavLink
+                  to={item.url}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-muted text-primary"
+                        : "text-muted-foreground hover:bg-muted"
+                    )
+                  }
+                >
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

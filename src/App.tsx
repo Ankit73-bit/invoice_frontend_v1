@@ -1,9 +1,14 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import { Slide, ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./hooks/theme-provider";
 import ProtectedRoute from "./features/authentication/ProtectedRoute";
+import LayoutPage from "./pages/LayoutPage";
+import CreateInvoice from "./features/invoice/CreateInvoice";
+import Invoices from "./features/invoice/Invoices";
+import Consignee from "./features/invoice/Consignee";
+import ClientPage from "./features/invoice/client/ClientPage";
 
 function App() {
   return (
@@ -11,7 +16,7 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ToastContainer
           position="top-center"
-          autoClose={3000}
+          autoClose={2000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick={false}
@@ -23,15 +28,28 @@ function App() {
           transition={Slide}
         />
         <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route index path="/" element={<LoginPage />} />
+          <Route element={<LayoutPage />}>
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Navigate replace to="dashboard" />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="invoice/new" element={<CreateInvoice />} />
+            <Route path="invoices" element={<Invoices />} />
+            <Route
+              path="clients"
+              element={
+                <ProtectedRoute>
+                  <ClientPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="consignee" element={<Consignee />} />
+          </Route>
         </Routes>
       </ThemeProvider>
     </>
