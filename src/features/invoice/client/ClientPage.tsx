@@ -1,6 +1,6 @@
 import AccordionSection from "@/features/components/Accordian";
 import ClientTable from "./ClientTable";
-import ClientForm from "./ClientFrom";
+import { ClientForm } from "./ClientFrom";
 import { useClients } from "@/hooks/useClients";
 
 export default function ClientPage() {

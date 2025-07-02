@@ -1,7 +1,7 @@
-import { useClientStore } from "@/store/clientStore";
-import { useClients } from "@/hooks/useClients";
+import { useConsigneeStore } from "@/store/consigneeStore";
+import { useConsignees } from "@/hooks/useConsignees";
 import { Button } from "@/components/ui/button";
-import type { Client } from "@/store/clientStore";
+import type { Consignee } from "@/store/consigneeStore";
 import { GenericTable } from "@/features/components/GenericTable";
 import TableCellViewer from "@/features/components/TableCellViewer";
 
@@ -11,75 +11,76 @@ export interface ColumnConfig<T> {
   customCell?: (item: T) => React.ReactNode;
 }
 
-export default function ClientTable() {
-  useClients();
-  const { clients, setSelectedClient, removeClient } = useClientStore();
+export default function ConsigneeTable() {
+  useConsignees();
+  const { consignees, setSelectedConsignee, removeConsignee } =
+    useConsigneeStore();
 
   return (
-    <GenericTable<Client>
-      items={clients}
-      endpoint="clients"
-      itemName="client"
-      getRowKey={(client) => client._id}
-      setSelectedItem={setSelectedClient}
-      removeItem={removeClient}
+    <GenericTable<Consignee>
+      items={consignees}
+      endpoint="consignees"
+      itemName="consignee"
+      getRowKey={(consignee) => consignee._id}
+      setSelectedItem={setSelectedConsignee}
+      removeItem={removeConsignee}
       columns={[
         {
-          label: "Client Company",
-          accessor: "clientCompanyName",
-          customCell: (client: Client) => (
+          label: "Consignee Company",
+          accessor: "consigneeCompanyName",
+          customCell: (consignee: Consignee) => (
             <TableCellViewer
-              item={client}
-              title={client.clientCompanyName}
-              description={client.clientName}
+              item={consignee}
+              title={consignee.consigneeCompanyName}
+              description={consignee.consigneeName}
               trigger={
                 <Button variant="link" className="p-0 text-left text-primary">
-                  {client.clientCompanyName}
+                  {consignee.consigneeCompanyName}
                 </Button>
               }
-              renderDetails={(client) => (
+              renderDetails={(consignee) => (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <strong>Email:</strong>
                     <div className="text-muted-foreground">
-                      {client.email || "-"}
+                      {consignee.email || "-"}
                     </div>
                   </div>
                   <div>
                     <strong>Contact:</strong>
                     <div className="text-muted-foreground">
-                      {client.contact || "-"}
+                      {consignee.contact || "-"}
                     </div>
                   </div>
                   <div>
                     <strong>GST No:</strong>
                     <div className="text-muted-foreground">
-                      {client.address?.gstNo || "-"}
+                      {consignee.address?.gstNo || "-"}
                     </div>
                   </div>
                   <div>
                     <strong>PAN No:</strong>
                     <div className="text-muted-foreground">
-                      {client.address?.panNo || "-"}
+                      {consignee.address?.panNo || "-"}
                     </div>
                   </div>
                   <div>
                     <strong>State Code:</strong>
                     <div className="text-muted-foreground">
-                      {client.address?.stateCode || "-"}
+                      {consignee.address?.stateCode || "-"}
                     </div>
                   </div>
                   <div className="col-span-2">
                     <strong>Full Address:</strong>
                     <div className="text-muted-foreground">
                       {[
-                        client.address?.add1,
-                        client.address?.add2,
-                        client.address?.add3,
-                        client.address?.city,
-                        client.address?.state,
-                        client.address?.pinCode,
-                        client.address?.country,
+                        consignee.address?.add1,
+                        consignee.address?.add2,
+                        consignee.address?.add3,
+                        consignee.address?.city,
+                        consignee.address?.state,
+                        consignee.address?.pinCode,
+                        consignee.address?.country,
                       ]
                         .filter(Boolean)
                         .join(", ") || "-"}
@@ -90,7 +91,7 @@ export default function ClientTable() {
             />
           ),
         },
-        { label: "Client Name", accessor: "clientName" },
+        { label: "Consignee Name", accessor: "consigneeName" },
         { label: "GST No", accessor: "address.gstNo" },
         { label: "Email", accessor: "email" },
       ]}

@@ -1,15 +1,19 @@
-import { useClientStore } from "@/store/clientStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GenericForm } from "@/features/components/GenericFrom";
+import { useConsigneeStore } from "@/store/consigneeStore";
 
-export function ClientForm() {
-  const { selectedClient, setSelectedClient, addClient, updateClient } =
-    useClientStore();
+export function ConsigneeForm() {
+  const {
+    selectedConsignee,
+    setSelectedConsignee,
+    addConsignee,
+    updateConsignee,
+  } = useConsigneeStore();
 
-  const defaultClient = {
-    clientName: "",
-    clientCompanyName: "",
+  const defaultConsignee = {
+    consigneeName: "",
+    consigneeCompanyName: "",
     email: "",
     contact: "",
     company: "",
@@ -29,23 +33,25 @@ export function ClientForm() {
 
   return (
     <GenericForm
-      apiBase="clients"
-      defaultValues={defaultClient}
-      selectedItem={selectedClient}
-      setSelectedItem={setSelectedClient}
-      addItem={addClient}
-      updateItem={updateClient}
+      apiBase="consignees"
+      defaultValues={defaultConsignee}
+      selectedItem={selectedConsignee}
+      setSelectedItem={setSelectedConsignee}
+      addItem={addConsignee}
+      updateItem={updateConsignee}
       renderFields={(register, errors) => (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Company Name</Label>
-              <Input {...register("clientCompanyName", { required: true })} />
+              <Input
+                {...register("consigneeCompanyName", { required: true })}
+              />
             </div>
 
             <div>
-              <Label>Client Name</Label>
-              <Input {...register("clientName")} />
+              <Label>Consignee Name</Label>
+              <Input {...register("consigneeName")} />
             </div>
 
             <div>
