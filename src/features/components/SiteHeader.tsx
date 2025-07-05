@@ -13,7 +13,7 @@ export function SiteHeader() {
     "/invoice/new": "Create Invoice",
     "/invoices": "Invoices",
     "/clients": "Clients",
-    "/consignee": "Consignees",
+    "/consignees": "Consignees",
     "/users": "User Management",
   };
 

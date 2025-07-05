@@ -7,7 +7,6 @@ import ProtectedRoute from "./features/authentication/ProtectedRoute";
 import LayoutPage from "./pages/LayoutPage";
 import CreateInvoice from "./features/invoice/CreateInvoice";
 import Invoices from "./features/invoice/Invoices";
-import Consignee from "./features/invoice/Consignee";
 import ClientPage from "./features/invoice/client/ClientPage";
 import ConsigneePage from "./features/invoice/consignee/ConsigneePage";
 
@@ -49,7 +48,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="consignee" element={<ConsigneePage />} />
+            <Route
+              path="consignees"
+              element={
+                <ProtectedRoute>
+                  <ConsigneePage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </ThemeProvider>

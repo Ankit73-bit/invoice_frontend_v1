@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api";
-import { toast } from "sonner";
 import { MoreHorizontal } from "lucide-react";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import {
@@ -30,6 +29,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { type Consignee } from "@/store/consigneeStore";
+import { type Client } from "@/store/clientStore";
+import { toast } from "react-toastify";
 
 interface ColumnConfig<T> {
   label: string;
@@ -167,6 +169,66 @@ export function GenericTable<T>({
                             >
                               Delete
                             </DropdownMenuItem>
+                            {endpoint === "clients" && (
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  const client = item as Client;
+
+                                  const mapped = {
+                                    consigneeName: client.clientName || "",
+                                    consigneeCompanyName:
+                                      client.clientCompanyName || "",
+                                    email: client.email || "",
+                                    contact: client.contact || "",
+                                    company: client.company || "",
+                                    address: { ...client.address },
+                                  };
+
+                                  try {
+                                    const res = await api.post(
+                                      "/consignees",
+                                      mapped
+                                    );
+                                    toast.success("Copied to consignee");
+                                  } catch (error) {
+                                    toast.error("Failed to copy");
+                                    console.error(error);
+                                  }
+                                }}
+                              >
+                                Copy To Consignee
+                              </DropdownMenuItem>
+                            )}
+                            {endpoint === "consignees" && (
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  const consignee = item as Consignee;
+
+                                  const mapped = {
+                                    clientName: consignee.consigneeName || "",
+                                    clientCompanyName:
+                                      consignee.consigneeCompanyName || "",
+                                    email: consignee.email || "",
+                                    contact: consignee.contact || "",
+                                    company: consignee.company || "",
+                                    address: { ...consignee.address },
+                                  };
+
+                                  try {
+                                    const res = await api.post(
+                                      "/clients",
+                                      mapped
+                                    );
+                                    toast.success("Copied to client");
+                                  } catch (error) {
+                                    toast.error("Failed to copy");
+                                    console.error(error);
+                                  }
+                                }}
+                              >
+                                Copy To Client
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>

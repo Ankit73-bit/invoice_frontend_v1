@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/store/authStore";
 
 export function LoginForm({
   className,
@@ -26,8 +25,6 @@ export function LoginForm({
 
   const { companies } = useCompanies();
   const { login, register } = useAuth();
-  const user = useAuthStore((s) => s.user);
-  console.log(user);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

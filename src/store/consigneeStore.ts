@@ -28,8 +28,8 @@ interface ConsigneeStore {
   consignees: Consignee[];
   setConsignees: (consignees: Consignee[]) => void;
   addConsignee: (consignees: Consignee) => void;
-  selectedConsignee: Consignee | null;
-  setSelectedConsignee: (consignee: Consignee | null) => void;
+  selectedConsignee: Partial<Consignee> | null;
+  setSelectedConsignee: (consignee: Partial<Consignee> | null) => void;
   updateConsignee: (updated: Consignee) => void;
   removeConsignee: (id: string) => void;
 }

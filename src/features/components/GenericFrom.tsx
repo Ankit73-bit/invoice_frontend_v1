@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
+import { useCompanyContext } from "@/store/companyContextStore";
 
 interface GenericFormProps<T> {
   apiBase: string; // e.g., "clients" or "consignees"
@@ -33,6 +34,8 @@ export function GenericForm<T extends { _id?: string }>({
     formState: { errors },
   } = useForm<T>({ defaultValues });
 
+  const { selectedCompanyId } = useCompanyContext();
+
   useEffect(() => {
     if (selectedItem) {
       reset(selectedItem);
@@ -48,7 +51,10 @@ export function GenericForm<T extends { _id?: string }>({
         updateItem(res.data.data);
         toast.success("Updated successfully");
       } else {
-        const res = await api.post(`/${apiBase}`, data);
+        const res = await api.post(`/${apiBase}`, {
+          ...data,
+          company: selectedCompanyId,
+        });
         addItem(res.data.data);
         toast.success("Created successfully");
       }
