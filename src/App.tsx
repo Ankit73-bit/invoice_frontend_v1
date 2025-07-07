@@ -5,10 +5,10 @@ import { Slide, ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./hooks/theme-provider";
 import ProtectedRoute from "./features/authentication/ProtectedRoute";
 import LayoutPage from "./pages/LayoutPage";
-import CreateInvoice from "./features/invoice/CreateInvoice";
-import Invoices from "./features/invoice/Invoices";
+import Invoices from "./features/invoice/invoice/Invoices";
 import ClientPage from "./features/invoice/client/ClientPage";
 import ConsigneePage from "./features/invoice/consignee/ConsigneePage";
+import CreateInvoice from "./features/invoice/invoice/CreateInvoice";
 
 function App() {
   return (

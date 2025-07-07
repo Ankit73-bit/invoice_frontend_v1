@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useConsigneeStore } from "@/store/consigneeStore";
 
 export function useConsignees() {
-  const { setConsignees } = useConsigneeStore();
+  const { setConsignees, consignees } = useConsigneeStore();
 
   useEffect(() => {
     const fetchConsignees = async () => {
@@ -19,4 +19,6 @@ export function useConsignees() {
 
     fetchConsignees();
   }, [setConsignees]);
+
+  return { consignees };
 }

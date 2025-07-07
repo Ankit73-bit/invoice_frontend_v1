@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 
 export function useClients() {
-  const { setClients } = useClientStore();
+  const { setClients, clients } = useClientStore();
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -19,4 +19,6 @@ export function useClients() {
 
     fetchClients();
   }, [setClients]);
+
+  return { clients };
 }
