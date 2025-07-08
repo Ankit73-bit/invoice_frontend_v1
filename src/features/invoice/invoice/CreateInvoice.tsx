@@ -20,9 +20,28 @@ import { toast } from "sonner";
 import { SearchableSelect } from "@/features/components/SearchableSelect";
 
 import { PDFViewer } from "@react-pdf/renderer";
-import { InvoicePDF } from "@/features/templates/template1/InvoicePdf";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer";
+
+import { DatePicker } from "@/features/components/DatePicker";
+import { InvoicePDF } from "@/features/templates/template1/InvoicePDF";
+import type { Invoice } from "@/store/invoiceStore";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useAuthStore } from "@/store/authStore";
 
 const schema = z.object({
+  invoiceNo: z.string(),
+  company: z.string(),
   client: z.string(),
   consignee: z.string().optional(),
   date: z.string(),
@@ -40,6 +59,12 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function CreateInvoice() {
+  const { clients } = useClients();
+  const { consignees } = useConsignees();
+  const { companies } = useCompanies();
+  const { user } = useAuthStore();
+  const { selectedCompanyId } = useCompanyContext();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -51,14 +76,23 @@ export default function CreateInvoice() {
     },
   });
 
+  const clientObj = clients.find((c) => c._id === form.watch("client"));
+  const consigneeObj = consignees.find(
+    (c) => c._id === form.watch("consignee")
+  );
+
+  const companyObj = companies.find((c) => {
+    if (user?.role === "admin") {
+      return c._id === selectedCompanyId;
+    } else {
+      return c._id === user?.company?._id;
+    }
+  });
+
   const { fields, append, remove } = useFieldArray({
     name: "items",
     control: form.control,
   });
-
-  const { clients } = useClients();
-  const { consignees } = useConsignees();
-  const { selectedCompanyId } = useCompanyContext();
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -67,16 +101,40 @@ export default function CreateInvoice() {
         company: selectedCompanyId,
       });
       toast.success("Invoice created");
+      console.log(values);
       form.reset();
     } catch (err) {
       toast.error("Failed to create invoice");
     }
   };
 
+  const handlePreview = () => {
+    const values = form.getValues();
+    const invoice: Invoice = {
+      ...values,
+      _id: "temp-id",
+      status: "Pending",
+      createdAt: new Date().toISOString(),
+      invoiceNo: "TEMP-INV",
+      client: clientObj,
+      consignee: consigneeObj,
+      company: companyObj,
+    };
+    // console.log("Previewing Invoice:", invoice);
+  };
+
   return (
-    <>
+    <div className="space-y-6 px-6 py-4 bg-card m-4 rounded-md">
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Company</Label>
+            <Select value={form.watch("company")}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a fruit" />
+              </SelectTrigger>
+            </Select>
+          </div>
           <div>
             <SearchableSelect
               label="Client Address"
@@ -105,8 +163,11 @@ export default function CreateInvoice() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label>Date</Label>
-            <Input type="date" {...form.register("date")} />
+            <DatePicker
+              label="Invoice Date"
+              value={form.watch("date")}
+              onChange={(val) => form.setValue("date", val)}
+            />
           </div>
           <div>
             <Label>Status</Label>
@@ -177,11 +238,54 @@ export default function CreateInvoice() {
         </div>
 
         <Button type="submit">Submit Invoice</Button>
-      </form>
 
-      <PDFViewer width="100%" height={600}>
-        <InvoicePDF invoice={form.watch()} />
-      </PDFViewer>
-    </>
+        <Drawer>
+          <DrawerTrigger asChild>
+            <Button variant="outline" onClick={handlePreview}>
+              Preview Invoice
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Invoice Preview</DrawerTitle>
+              <DrawerDescription>
+                Review your invoice before final submission or download.
+              </DrawerDescription>
+            </DrawerHeader>
+
+            {/* PDF Preview */}
+            <div className="h-[80vh] overflow-hidden border rounded-md">
+              <PDFViewer width="100%" height="100%">
+                <InvoicePDF invoice={form.getValues()} />
+              </PDFViewer>
+            </div>
+
+            <DrawerFooter>
+              {/* Download PDF */}
+              <PDFDownloadLink
+                document={<InvoicePDF invoice={form.getValues()} />}
+                fileName={`invoice-${form.watch("invoiceNo") || "draft"}.pdf`}
+              >
+                {({ loading }) => (
+                  <Button variant="secondary">
+                    {loading ? "Preparing..." : "Download PDF"}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+
+              {/* Submit */}
+              <Button onClick={form.handleSubmit(onSubmit)}>
+                Submit Invoice
+              </Button>
+
+              {/* Cancel */}
+              <DrawerClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      </form>
+    </div>
   );
 }
