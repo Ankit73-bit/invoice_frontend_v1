@@ -1,3 +1,7 @@
+import { useCompanies } from "@/hooks/useCompanies";
+import { useAuthStore } from "@/store/authStore";
+import { useClientStore } from "@/store/clientStore";
+import { useConsigneeStore } from "@/store/consigneeStore";
 import type { Invoice } from "@/store/invoiceStore";
 import {
   Document,
@@ -40,7 +44,6 @@ const styles = StyleSheet.create({
 });
 
 export const InvoicePDF = ({ invoice }: { invoice: Invoice }) => {
-  console.log(invoice);
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -48,6 +51,13 @@ export const InvoicePDF = ({ invoice }: { invoice: Invoice }) => {
           <Text style={styles.heading}>Invoice No: {invoice.invoiceNo}</Text>
           <Text>Date: {invoice.date}</Text>
           <Text>Financial Year: {invoice.financialYear}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.heading}>Company Details</Text>
+          <Text>{invoice.company?.companyName}</Text>
+          <Text>{invoice.company?.email}</Text>
+          <Text>{invoice.company?.address?.gstNo}</Text>
         </View>
 
         <View style={styles.section}>
