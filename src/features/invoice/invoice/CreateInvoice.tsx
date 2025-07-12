@@ -1,261 +1,25 @@
-// import { useForm, useFieldArray, Form } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import * as z from "zod";
-
-// import { Input } from "@/components/ui/input";
-// import { Button } from "@/components/ui/button";
-// import { Label } from "@/components/ui/label";
-// import {
-//   Select,
-//   SelectTrigger,
-//   SelectValue,
-//   SelectItem,
-//   SelectContent,
-// } from "@/components/ui/select";
-// import { useClients } from "@/hooks/useClients";
-// import { useConsignees } from "@/hooks/useConsignees";
-// import { useCompanyContext } from "@/store/companyContextStore";
-// import { api } from "@/lib/api";
-// import { toast } from "sonner";
-// import { SearchableSelect } from "@/features/components/SearchableSelect";
-
-// import { PDFViewer } from "@react-pdf/renderer";
-// import { PDFDownloadLink } from "@react-pdf/renderer";
-
-// import {
-//   Drawer,
-//   DrawerTrigger,
-//   DrawerContent,
-//   DrawerHeader,
-//   DrawerTitle,
-//   DrawerDescription,
-//   DrawerFooter,
-//   DrawerClose,
-// } from "@/components/ui/drawer";
-
-// import { DatePicker } from "@/features/components/DatePicker";
-// import { InvoicePDF } from "@/features/templates/template1/InvoicePDF";
-// import type { Invoice } from "@/store/invoiceStore";
-// import { useCompanies } from "@/hooks/useCompanies";
-// import { useAuthStore } from "@/store/authStore";
-// import { invoiceSchema } from "./invoiceSchema";
-// import { useEffect } from "react";
-// import {
-//   FormControl,
-//   FormField,
-//   FormItem,
-//   FormLabel,
-// } from "@/components/ui/form";
-
-// type FormValues = z.infer<typeof invoiceSchema>;
-
-// export default function CreateInvoice() {
-//   const { clients } = useClients();
-//   const { consignees } = useConsignees();
-//   const { companies } = useCompanies();
-//   const { user } = useAuthStore();
-//   const { selectedCompanyId } = useCompanyContext();
-
-//   useEffect(() => {
-//     if (!selectedCompanyId) return;
-
-//     const fetchInvoiceNo = async () => {
-//       try {
-//         const res = await api.get(
-//           `/invoices/next-invoice-number?companyId=${selectedCompanyId}`
-//         );
-//         form.setValue("invoiceNo", res.data.invoiceNumber);
-//       } catch (err) {
-//         console.error("Failed to fetch invoice number", err);
-//       }
-//     };
-
-//     fetchInvoiceNo();
-//     console.log(fetchInvoiceNo());
-//   }, [selectedCompanyId]);
-
-//   const form = useForm<FormValues>({
-//     resolver: zodResolver(invoiceSchema),
-//     defaultValues: {
-//       invoiceNo: "",
-//       client: "",
-//       consignee: "",
-//       date: new Date().toISOString().split("T")[0],
-//       status: "Pending",
-//       items: [{ description: "", quantity: 1, unitPrice: "", total: 0 }],
-//     },
-//   });
-
-//   const clientObj = clients.find((c) => c._id === form.watch("client"));
-//   const consigneeObj = consignees.find(
-//     (c) => c._id === form.watch("consignee")
-//   );
-
-//   const companyObj = companies.find((c) => {
-//     if (user?.role === "admin") {
-//       return c._id === selectedCompanyId;
-//     } else {
-//       return c._id === user?.company?._id;
-//     }
-//   });
-
-//   const { fields, append, remove } = useFieldArray({
-//     name: "items",
-//     control: form.control,
-//   });
-
-//   const onSubmit = async (values: FormValues) => {
-//     try {
-//       await api.post("/invoices", {
-//         ...values,
-//         company: selectedCompanyId,
-//       });
-//       toast.success("Invoice created");
-//       console.log(values);
-//       form.reset();
-//     } catch (err) {
-//       toast.error("Failed to create invoice");
-//     }
-//   };
-
-//   const handlePreview = () => {
-//     const values = form.getValues();
-//     const invoice: Invoice = {
-//       ...values,
-//       _id: "temp-id",
-//       status: "Pending",
-//       createdAt: new Date().toISOString(),
-//       invoiceNo: "TEMP-INV",
-//       client: clientObj,
-//       consignee: consigneeObj,
-//       company: companyObj,
-//       bankDetails: companyObj.companyBankDetails,
-//     };
-//     // console.log("Previewing Invoice:", invoice);
-//   };
-
-//   const invoiceData: Invoice = {
-//     ...form.getValues(),
-//     client: clientObj,
-//     consignee: consigneeObj,
-//     company: companyObj,
-//   };
-
-//   return (
-//     <div className="space-y-6 px-6 py-4 bg-card m-4 rounded-md">
-//       <Form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//           <FormField
-//             control={form.control}
-//             name="invoiceNo"
-//             render={({ field }) => (
-//               <FormItem>
-//                 <FormLabel>Invoice No</FormLabel>
-//                 <FormControl>
-//                   <Input {...field} disabled />
-//                 </FormControl>
-//               </FormItem>
-//             )}
-//           />
-
-//           <FormField
-//             control={form.control}
-//             name="date"
-//             render={({ field }) => (
-//               <FormItem>
-//                 <FormLabel>Invoice Date</FormLabel>
-//                 <FormControl>
-//                   <DatePicker
-//                     value={field.value}
-//                     onChange={(val) => field.onChange(val)}
-//                   />
-//                 </FormControl>
-//               </FormItem>
-//             )}
-//           />
-
-//           <FormField
-//             control={form.control}
-//             name="status"
-//             render={({ field }) => (
-//               <FormItem>
-//                 <FormLabel>Status</FormLabel>
-//                 <Select onValueChange={field.onChange} value={field.value}>
-//                   <SelectTrigger>
-//                     <SelectValue placeholder="Select status" />
-//                   </SelectTrigger>
-//                   <SelectContent>
-//                     <SelectItem value="Pending">Pending</SelectItem>
-//                     <SelectItem value="Paid">Paid</SelectItem>
-//                     <SelectItem value="Overdue">Overdue</SelectItem>
-//                   </SelectContent>
-//                 </Select>
-//               </FormItem>
-//             )}
-//           />
-//         </div>
-
-//         <Button type="submit">Submit Invoice</Button>
-
-//         <Drawer>
-//           <DrawerTrigger asChild>
-//             <Button variant="outline" onClick={handlePreview}>
-//               Preview Invoice
-//             </Button>
-//           </DrawerTrigger>
-//           <DrawerContent>
-//             <DrawerHeader>
-//               <DrawerTitle>Invoice Preview</DrawerTitle>
-//               <DrawerDescription>
-//                 Review your invoice before final submission or download.
-//               </DrawerDescription>
-//             </DrawerHeader>
-
-//             {/* PDF Preview */}
-//             <div className="h-[80vh] overflow-hidden border rounded-md">
-//               <PDFViewer width="100%" height="100%">
-//                 <InvoicePDF invoice={invoiceData} />
-//               </PDFViewer>
-//             </div>
-
-//             <DrawerFooter>
-//               {/* Download PDF */}
-//               <PDFDownloadLink
-//                 document={<InvoicePDF invoice={invoiceData} />}
-//                 fileName={`invoice-${form.watch("invoiceNo") || "draft"}.pdf`}
-//               >
-//                 {({ loading }) => (
-//                   <Button variant="secondary">
-//                     {loading ? "Preparing..." : "Download PDF"}
-//                   </Button>
-//                 )}
-//               </PDFDownloadLink>
-
-//               {/* Submit */}
-//               <Button onClick={form.handleSubmit(onSubmit)}>
-//                 Submit Invoice
-//               </Button>
-
-//               {/* Cancel */}
-//               <DrawerClose asChild>
-//                 <Button variant="outline">Cancel</Button>
-//               </DrawerClose>
-//             </DrawerFooter>
-//           </DrawerContent>
-//         </Drawer>
-//       </Form>
-//     </div>
-//   );
-// }
-
-"use client";
-
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash2, Calculator, FileText } from "lucide-react";
+import {
+  Calculator,
+  FileText,
+  Plus,
+  LayoutTemplateIcon as Template,
+  Trash2,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -272,22 +36,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -295,56 +47,61 @@ import {
 
 import type * as z from "zod";
 import { invoiceSchema } from "./invoiceSchema";
+import { useClients } from "@/hooks/useClients";
+import { useConsignees } from "@/hooks/useConsignees";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useAuthStore } from "@/store/authStore";
+import { useCompanyContext } from "@/store/companyContextStore";
+import { api } from "@/lib/api";
+import { InvoicePreviewDialog } from "@/features/components/InvoicePreviewDialog";
+import { InvoiceTemplates } from "@/features/components/invoiceTemplates";
+import { Separator } from "@radix-ui/react-select";
+import { ConsigneeSelect } from "./ConsigneeSelect";
+import { ClientSelect } from "./ClientSelect";
 
 type FormValues = z.infer<typeof invoiceSchema>;
 
-// Mock data - replace with your actual hooks
-const mockClients = [
-  { _id: "1", name: "Acme Corp", address: "123 Business St" },
-  { _id: "2", name: "Tech Solutions", address: "456 Tech Ave" },
-];
-
-const mockConsignees = [
-  { _id: "1", name: "Warehouse A", address: "789 Storage Rd" },
-  { _id: "2", name: "Distribution Center", address: "321 Logistics Blvd" },
-];
-
-const mockCompany = {
-  _id: "company1",
-  name: "Your Company Ltd",
-  address: "Company Address",
-  companyBankDetails: {
-    bankName: "State Bank",
-    accNo: "1234567890",
-    ifsc: "SBIN0001234",
-    branchName: "Main Branch",
-  },
-};
-
-export default function CreateInvoiceForm() {
+export default function CreateInvoice() {
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [calculatedTotals, setCalculatedTotals] = useState({
     totalBeforeGST: 0,
     gstAmount: 0,
     grossAmount: 0,
   });
 
+  const { clients } = useClients();
+  const { consignees } = useConsignees();
+  const { companies } = useCompanies();
+  const { user } = useAuthStore();
+  const { selectedCompanyId } = useCompanyContext();
+
+  const companyObj = companies.find((c) => {
+    if (user?.role === "admin") {
+      return c._id === selectedCompanyId;
+    } else {
+      return c._id === user?.company?._id;
+    }
+  });
+
   const form = useForm<FormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
-      invoiceNo: "INV-2024-001",
+      invoiceNo: "INV/25-26/001",
       date: new Date().toISOString().split("T")[0],
-      financialYear: "2024-25",
+      financialYear: "25-26",
       status: "Pending",
       client: "",
+      consignee: "",
       dispatchDetails: {},
       hrDescription: {},
       bankDetails: {
-        bankName: mockCompany.companyBankDetails.bankName,
-        accNo: mockCompany.companyBankDetails.accNo,
-        ifsc: mockCompany.companyBankDetails.ifsc,
-        branchName: mockCompany.companyBankDetails.branchName,
+        bankName: companyObj?.companyBankDetails?.bankName || "",
+        accNo: companyObj?.companyBankDetails?.accNo || "",
+        ifsc: companyObj?.companyBankDetails?.ifsc || "",
+        branchName: companyObj?.companyBankDetails?.branchName || "",
       },
+      company: "",
       items: [{ description: "", quantity: 1, unitPrice: "0", total: 0 }],
       gstDetails: {
         type: "CGST",
@@ -358,6 +115,50 @@ export default function CreateInvoiceForm() {
     name: "items",
     control: form.control,
   });
+
+  // Fix bank details initialization
+  useEffect(() => {
+    if (companyObj?.companyBankDetails) {
+      form.setValue(
+        "bankDetails.bankName",
+        companyObj.companyBankDetails.bankName || ""
+      );
+      form.setValue(
+        "bankDetails.accNo",
+        companyObj.companyBankDetails.accNo || ""
+      );
+      form.setValue(
+        "bankDetails.ifsc",
+        companyObj.companyBankDetails.ifsc || ""
+      );
+      form.setValue(
+        "bankDetails.branchName",
+        companyObj.companyBankDetails.branchName || ""
+      );
+    }
+  }, [companyObj, form]);
+
+  useEffect(() => {
+    if (!selectedCompanyId) return;
+
+    const fetchInvoiceNo = async () => {
+      try {
+        const res = await api.get(
+          `/invoices/next-invoice-number?companyId=${selectedCompanyId}`
+        );
+        form.setValue("invoiceNo", res.data.invoiceNumber);
+      } catch (err) {
+        console.error("Failed to fetch invoice number", err);
+      }
+    };
+
+    fetchInvoiceNo();
+  }, [selectedCompanyId]);
+
+  const clientObj = clients.find((c) => c._id === form.watch("client"));
+  const consigneeObj = consignees.find(
+    (c) => c._id === form.watch("consignee")
+  );
 
   const watchedItems = form.watch("items");
   const watchedGstDetails = form.watch("gstDetails");
@@ -416,7 +217,10 @@ export default function CreateInvoiceForm() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      console.log("Submitting invoice:", values);
+      console.log("Submitting invoice:", {
+        ...values,
+        company: selectedCompanyId,
+      });
       // Replace with your API call
       // await api.post("/invoices", { ...values, company: selectedCompanyId })
       alert("Invoice created successfully!");
@@ -481,12 +285,22 @@ export default function CreateInvoiceForm() {
   useEffect(() => {
     const grossAmount = calculatedTotals.grossAmount;
     if (grossAmount > 0) {
-      form.setValue(
-        "inWords",
-        `${numberToWords(Math.floor(grossAmount))} Rupees Only`
-      );
+      form.setValue("inWords", `${numberToWords(grossAmount)} Rupees Only`);
     }
   }, [calculatedTotals.grossAmount, form]);
+
+  const handleTemplateSelect = (template: any) => {
+    // Apply template settings to form
+    form.setValue("gstDetails.type", template.gstConfig.defaultType);
+    if (template.gstConfig.defaultType === "CGST") {
+      form.setValue("gstDetails.cgstRate", template.gstConfig.rates[0] / 2);
+      form.setValue("gstDetails.sgstRate", template.gstConfig.rates[0] / 2);
+    } else if (template.gstConfig.defaultType === "IGST") {
+      form.setValue("gstDetails.igstRate", template.gstConfig.rates[0]);
+    }
+    form.setValue("declaration", template.defaultTerms);
+    setTemplatesOpen(false);
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -497,9 +311,28 @@ export default function CreateInvoiceForm() {
             Generate a new invoice for your client
           </p>
         </div>
-        <Badge variant="outline" className="text-lg px-3 py-1">
-          {form.watch("invoiceNo")}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Template className="h-4 w-4 mr-2" />
+                Templates
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Choose Invoice Template</DialogTitle>
+                <DialogDescription>
+                  Select a template that matches your business type
+                </DialogDescription>
+              </DialogHeader>
+              <InvoiceTemplates onSelectTemplate={handleTemplateSelect} />
+            </DialogContent>
+          </Dialog>
+          <Badge variant="outline" className="text-lg px-3 py-1">
+            {form.watch("invoiceNo")}
+          </Badge>
+        </div>
       </div>
 
       <Form {...form}>
@@ -541,7 +374,7 @@ export default function CreateInvoiceForm() {
                       <FormItem>
                         <FormLabel>Invoice Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} required />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -681,23 +514,13 @@ export default function CreateInvoiceForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Select Client</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose client" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {mockClients.map((client) => (
-                                <SelectItem key={client._id} value={client._id}>
-                                  {client.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <ClientSelect
+                              clients={clients}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -715,27 +538,15 @@ export default function CreateInvoiceForm() {
                       name="consignee"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Select Consignee</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose consignee (optional)" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {mockConsignees.map((consignee) => (
-                                <SelectItem
-                                  key={consignee._id}
-                                  value={consignee._id}
-                                >
-                                  {consignee.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Select Consignee (Optional)</FormLabel>
+                          <FormControl>
+                            <ConsigneeSelect
+                              consignees={consignees}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Search and select consignee (optional)..."
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1332,102 +1143,14 @@ export default function CreateInvoiceForm() {
 
           <div className="flex justify-between items-center pt-6 border-t">
             <div className="flex gap-2">
-              <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-                <DialogTrigger asChild>
-                  <Button type="button" variant="outline">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Preview Invoice
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Invoice Preview</DialogTitle>
-                    <DialogDescription>
-                      Review your invoice before submission
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="text-center">
-                      <h2 className="text-2xl font-bold">{mockCompany.name}</h2>
-                      <p className="text-muted-foreground">
-                        {mockCompany.address}
-                      </p>
-                    </div>
-
-                    <Separator />
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <strong>Invoice No:</strong> {form.watch("invoiceNo")}
-                      </div>
-                      <div>
-                        <strong>Date:</strong> {form.watch("date")}
-                      </div>
-                      <div>
-                        <strong>Client:</strong>{" "}
-                        {mockClients.find((c) => c._id === form.watch("client"))
-                          ?.name || "Not selected"}
-                      </div>
-                      <div>
-                        <strong>Status:</strong> {form.watch("status")}
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div>
-                      <h3 className="font-semibold mb-2">Items:</h3>
-                      <div className="space-y-2">
-                        {watchedItems.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between text-sm"
-                          >
-                            <span>
-                              {item.description || `Item ${index + 1}`}
-                            </span>
-                            <span>₹{(item.total || 0).toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="text-right space-y-1">
-                      <div className="flex justify-between">
-                        <span>Subtotal:</span>
-                        <span>
-                          ₹{calculatedTotals.totalBeforeGST.toFixed(2)}
-                        </span>
-                      </div>
-                      {form.watch("gstDetails.type") !== "None" && (
-                        <div className="flex justify-between">
-                          <span>GST:</span>
-                          <span>₹{calculatedTotals.gstAmount.toFixed(2)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between font-bold text-lg">
-                        <span>Total:</span>
-                        <span>₹{calculatedTotals.grossAmount.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setPreviewOpen(false)}
-                    >
-                      Close
-                    </Button>
-                    <Button onClick={form.handleSubmit(onSubmit)}>
-                      Create Invoice
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPreviewOpen(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Preview Invoice
+              </Button>
             </div>
 
             <div className="flex gap-2">
@@ -1445,6 +1168,15 @@ export default function CreateInvoiceForm() {
           </div>
         </form>
       </Form>
+
+      <InvoicePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        invoice={form.getValues()}
+        company={companyObj}
+        client={clientObj}
+        consignee={consigneeObj}
+      />
     </div>
   );
 }
