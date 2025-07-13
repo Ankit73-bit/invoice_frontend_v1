@@ -2,21 +2,21 @@ import z from "zod";
 
 export const invoiceSchema = z.object({
   invoiceNo: z.string(),
-  date: z.string(),
+  date: z.date(),
   financialYear: z.string().optional(),
 
   // Reference & Delivery
   referenceNo: z.string().optional(),
-  referenceDate: z.string().optional(),
+  referenceDate: z.date().optional(),
   otherReferences: z.string().optional(),
   purchaseNo: z.string().optional(),
-  purchaseDate: z.string().optional(),
+  purchaseDate: z.date().optional(),
   termsOfDelivery: z.string().optional(),
 
   // Dispatch
   dispatchDetails: z.object({
     dispatchNo: z.string().optional(),
-    date: z.string().optional(),
+    date: z.date().optional(),
     through: z.string().optional(),
     destination: z.string().optional(),
   }),
@@ -34,14 +34,6 @@ export const invoiceSchema = z.object({
   client: z.string(),
   consignee: z.string().optional(),
 
-  // Company bank details (auto-filled)
-  bankDetails: z.object({
-    bankName: z.string(),
-    accNo: z.string(),
-    ifsc: z.string(),
-    branchName: z.string(),
-  }),
-
   // Items
   items: z.array(
     z.object({
@@ -49,7 +41,7 @@ export const invoiceSchema = z.object({
       hsnCode: z.string().optional(),
       quantity: z.coerce.number().min(1),
       unitPrice: z.string(),
-      total: z.coerce.number(),
+      total: z.string().optional(),
     })
   ),
 

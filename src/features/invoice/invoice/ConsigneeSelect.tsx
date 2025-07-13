@@ -19,13 +19,6 @@ export function ConsigneeSelect({
   const consigneeOptions = consignees.map((consignee) => ({
     value: consignee._id,
     label: consignee.consigneeCompanyName,
-    subtitle: `${
-      consignee.consigneeName ? consignee.consigneeName + " • " : ""
-    }${
-      consignee.address?.city
-        ? consignee.address.city + ", " + consignee.address.state
-        : ""
-    }`.trim(),
   }));
 
   return (

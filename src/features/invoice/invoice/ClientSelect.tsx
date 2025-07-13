@@ -19,11 +19,6 @@ export function ClientSelect({
   const clientOptions = clients.map((client) => ({
     value: client._id,
     label: client.clientCompanyName,
-    subtitle: `${client.clientName ? client.clientName + " • " : ""}${
-      client.address?.city
-        ? client.address.city + ", " + client.address.state
-        : ""
-    } ${client.address.gstNo ? "• GST: " + client.address.gstNo : ""}`.trim(),
   }));
 
   return (

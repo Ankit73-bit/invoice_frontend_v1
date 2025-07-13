@@ -46,7 +46,7 @@ const mockClients = [
   { _id: "c3", clientCompanyName: "Tech Solutions" },
 ];
 
-export function Invoices() {
+export default function Invoices() {
   const [filters, setFilters] = useState<InvoiceFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

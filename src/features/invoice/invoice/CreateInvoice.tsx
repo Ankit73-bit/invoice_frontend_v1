@@ -1,4 +1,4 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calculator,
@@ -7,7 +7,7 @@ import {
   LayoutTemplateIcon as Template,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,17 +58,20 @@ import { InvoiceTemplates } from "@/features/components/invoiceTemplates";
 import { Separator } from "@radix-ui/react-select";
 import { ConsigneeSelect } from "./ConsigneeSelect";
 import { ClientSelect } from "./ClientSelect";
+import { ConvertToWords } from "@/features/utils/ConvertToWords";
+import {
+  CGST_OPTIONS,
+  FUEL_SURCHARGE_OPTIONS,
+  IGST_OPTIONS,
+} from "@/features/utils/constant";
+import { DatePicker } from "@/features/components/DatePicker";
 
 type FormValues = z.infer<typeof invoiceSchema>;
 
 export default function CreateInvoice() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
-  const [calculatedTotals, setCalculatedTotals] = useState({
-    totalBeforeGST: 0,
-    gstAmount: 0,
-    grossAmount: 0,
-  });
+  const [manualTotalIndexes, setManualTotalIndexes] = useState<number[]>([]);
 
   const { clients } = useClients();
   const { consignees } = useConsignees();
@@ -88,26 +91,21 @@ export default function CreateInvoice() {
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       invoiceNo: "INV/25-26/001",
-      date: new Date().toISOString().split("T")[0],
+      date: new Date(),
       financialYear: "25-26",
       status: "Pending",
       client: "",
       consignee: "",
       dispatchDetails: {},
       hrDescription: {},
-      bankDetails: {
-        bankName: companyObj?.companyBankDetails?.bankName || "",
-        accNo: companyObj?.companyBankDetails?.accNo || "",
-        ifsc: companyObj?.companyBankDetails?.ifsc || "",
-        branchName: companyObj?.companyBankDetails?.branchName || "",
-      },
       company: "",
-      items: [{ description: "", quantity: 1, unitPrice: "0", total: 0 }],
+      items: [{ description: "", quantity: 1, unitPrice: "0", total: "0" }],
       gstDetails: {
         type: "CGST",
         cgstRate: 9,
         sgstRate: 9,
       },
+      roundingOff: 0,
     },
   });
 
@@ -115,28 +113,6 @@ export default function CreateInvoice() {
     name: "items",
     control: form.control,
   });
-
-  // Fix bank details initialization
-  useEffect(() => {
-    if (companyObj?.companyBankDetails) {
-      form.setValue(
-        "bankDetails.bankName",
-        companyObj.companyBankDetails.bankName || ""
-      );
-      form.setValue(
-        "bankDetails.accNo",
-        companyObj.companyBankDetails.accNo || ""
-      );
-      form.setValue(
-        "bankDetails.ifsc",
-        companyObj.companyBankDetails.ifsc || ""
-      );
-      form.setValue(
-        "bankDetails.branchName",
-        companyObj.companyBankDetails.branchName || ""
-      );
-    }
-  }, [companyObj, form]);
 
   useEffect(() => {
     if (!selectedCompanyId) return;
@@ -160,66 +136,104 @@ export default function CreateInvoice() {
     (c) => c._id === form.watch("consignee")
   );
 
-  const watchedItems = form.watch("items");
-  const watchedGstDetails = form.watch("gstDetails");
+  const watchedItems = useWatch({ control: form.control, name: "items" });
+  const gst = useWatch({ control: form.control, name: "gstDetails" });
 
-  // Calculate totals whenever items or GST details change
-  useEffect(() => {
+  const calculatedTotals = useMemo(() => {
     const totalBeforeGST = watchedItems.reduce((sum, item) => {
-      const quantity = item.quantity || 0;
-      const unitPrice = Number.parseFloat(item.unitPrice || "0");
-      return sum + quantity * unitPrice;
+      const total = parseFloat(item.total || "0");
+      return sum + (isNaN(total) ? 0 : total);
     }, 0);
 
-    let gstAmount = 0;
-    if (watchedGstDetails?.type !== "None") {
-      const cgstRate = watchedGstDetails?.cgstRate || 0;
-      const sgstRate = watchedGstDetails?.sgstRate || 0;
-      const igstRate = watchedGstDetails?.igstRate || 0;
+    const cgstRate = parseFloat(gst.cgstRate || "0");
+    const sgstRate = parseFloat(gst.sgstRate || "0");
+    const igstRate = parseFloat(gst.igstRate || "0");
+    const fuelRate = parseFloat(gst.fuelSurchargeRate || "0");
 
-      if (watchedGstDetails?.type === "IGST") {
-        gstAmount = (totalBeforeGST * igstRate) / 100;
-      } else {
-        gstAmount = (totalBeforeGST * (cgstRate + sgstRate)) / 100;
-      }
+    const cgstAmount = (totalBeforeGST * cgstRate) / 100;
+    const sgstAmount = (totalBeforeGST * sgstRate) / 100;
+    const igstAmount = (totalBeforeGST * igstRate) / 100;
+    const fuelSurchargeAmount = (totalBeforeGST * fuelRate) / 100;
+
+    const totalGSTAmount = cgstAmount + sgstAmount + igstAmount;
+    const totalAmount = totalBeforeGST + totalGSTAmount + fuelSurchargeAmount;
+
+    const grossAmount = Math.round(totalAmount);
+    const roundingOff = parseFloat((grossAmount - totalAmount).toFixed(2));
+
+    return {
+      totalBeforeGST,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
+      fuelSurchargeAmount,
+      totalGSTAmount,
+      totalAmount,
+      roundingOff,
+      grossAmount,
+    };
+  }, [watchedItems, gst]);
+
+  useEffect(() => {
+    const grossAmount = calculatedTotals.grossAmount;
+    if (grossAmount > 0) {
+      form.setValue("inWords", `${ConvertToWords(grossAmount)}`);
     }
+  }, [calculatedTotals.grossAmount, form]);
 
-    const fuelSurcharge = watchedGstDetails?.fuelSurcharge || 0;
-    const roundingOff = form.watch("roundingOff") || 0;
-    const grossAmount =
-      totalBeforeGST + gstAmount + fuelSurcharge + roundingOff;
-
-    setCalculatedTotals({ totalBeforeGST, gstAmount, grossAmount });
-
-    // Update form values
-    form.setValue("totalBeforeGST", totalBeforeGST);
-    form.setValue("grossAmount", grossAmount);
-
-    // Update GST calculations
-    if (watchedGstDetails?.type === "IGST") {
-      form.setValue("gstDetails.igst", gstAmount);
-    } else if (watchedGstDetails?.type !== "None") {
-      const cgst = (totalBeforeGST * (watchedGstDetails?.cgstRate || 0)) / 100;
-      const sgst = (totalBeforeGST * (watchedGstDetails?.sgstRate || 0)) / 100;
-      form.setValue("gstDetails.cgst", cgst);
-      form.setValue("gstDetails.sgst", sgst);
-    }
-  }, [watchedItems, watchedGstDetails, form]);
+  // Handle CGST rate change to sync SGST
+  const handleCGSTRateChange = (value: string) => {
+    const rate = Number.parseFloat(value);
+    form.setValue("gstDetails.cgstRate", rate);
+    form.setValue("gstDetails.sgstRate", rate); // Auto-sync SGST with CGST
+  };
 
   // Update item totals when quantity or unit price changes
-  const updateItemTotal = (index: number) => {
-    const item = watchedItems[index];
-    const quantity = item?.quantity || 0;
-    const unitPrice = Number.parseFloat(item?.unitPrice || "0");
-    const total = quantity * unitPrice;
-    form.setValue(`items.${index}.total`, total);
+  const updateItemTotal = (
+    index: number,
+    quantityOverride?: number,
+    unitPriceOverride?: string
+  ) => {
+    const quantity =
+      quantityOverride ?? Number(watchedItems[index]?.quantity || 0);
+    const unitPriceRaw =
+      unitPriceOverride ?? watchedItems[index]?.unitPrice?.trim();
+
+    if (!unitPriceRaw || unitPriceRaw === "-") {
+      if (!manualTotalIndexes.includes(index)) {
+        setManualTotalIndexes((prev) => [...prev, index]);
+      }
+      return;
+    }
+
+    if (manualTotalIndexes.includes(index)) {
+      setManualTotalIndexes((prev) => prev.filter((i) => i !== index));
+    }
+
+    const price = parseFloat(unitPriceRaw);
+    if (!isNaN(price)) {
+      const total = quantity * price;
+      form.setValue(`items.${index}.total`, total.toFixed(2));
+    }
   };
 
   const onSubmit = async (values: FormValues) => {
     try {
+      const cleanedItems = values.items.map((item) => {
+        const isManual = item.unitPrice.trim() === "-";
+
+        return {
+          ...item,
+          unitPrice: isManual ? "-" : parseFloat(item.unitPrice),
+          quantity: Number(item.quantity),
+          total: Number(item.total),
+        };
+      });
+
       console.log("Submitting invoice:", {
         ...values,
         company: selectedCompanyId,
+        items: cleanedItems,
       });
       // Replace with your API call
       // await api.post("/invoices", { ...values, company: selectedCompanyId })
@@ -231,61 +245,10 @@ export default function CreateInvoice() {
     }
   };
 
-  const numberToWords = (num: number): string => {
-    // Simple implementation - you might want to use a library for this
-    const ones = [
-      "",
-      "One",
-      "Two",
-      "Three",
-      "Four",
-      "Five",
-      "Six",
-      "Seven",
-      "Eight",
-      "Nine",
-    ];
-    const tens = [
-      "",
-      "",
-      "Twenty",
-      "Thirty",
-      "Forty",
-      "Fifty",
-      "Sixty",
-      "Seventy",
-      "Eighty",
-      "Ninety",
-    ];
-    const teens = [
-      "Ten",
-      "Eleven",
-      "Twelve",
-      "Thirteen",
-      "Fourteen",
-      "Fifteen",
-      "Sixteen",
-      "Seventeen",
-      "Eighteen",
-      "Nineteen",
-    ];
-
-    if (num === 0) return "Zero";
-    if (num < 10) return ones[num];
-    if (num < 20) return teens[num - 10];
-    if (num < 100)
-      return (
-        tens[Math.floor(num / 10)] + (num % 10 ? " " + ones[num % 10] : "")
-      );
-
-    // Add more logic for hundreds, thousands, etc.
-    return `${Math.floor(num)} (conversion incomplete)`;
-  };
-
   useEffect(() => {
     const grossAmount = calculatedTotals.grossAmount;
     if (grossAmount > 0) {
-      form.setValue("inWords", `${numberToWords(grossAmount)} Rupees Only`);
+      form.setValue("inWords", `${ConvertToWords(grossAmount)}`);
     }
   }, [calculatedTotals.grossAmount, form]);
 
@@ -374,7 +337,14 @@ export default function CreateInvoice() {
                       <FormItem>
                         <FormLabel>Invoice Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} required />
+                          <DatePicker
+                            date={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            onChange={(selectedDate) => {
+                              field.onChange(selectedDate ?? null);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -416,7 +386,13 @@ export default function CreateInvoice() {
                       <FormItem>
                         <FormLabel>Reference Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <DatePicker
+                            date={field.value}
+                            onChange={(selectedDate) =>
+                              field.onChange(selectedDate ?? undefined)
+                            }
+                            placeholder="Pick a date"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -477,7 +453,13 @@ export default function CreateInvoice() {
                       <FormItem>
                         <FormLabel>Purchase Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <DatePicker
+                            date={field.value}
+                            onChange={(selectedDate) =>
+                              field.onChange(selectedDate ?? undefined)
+                            }
+                            placeholder="Pick a date"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -581,7 +563,13 @@ export default function CreateInvoice() {
                       <FormItem>
                         <FormLabel>Dispatch Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <DatePicker
+                            date={field.value}
+                            onChange={(selectedDate) =>
+                              field.onChange(selectedDate ?? undefined)
+                            }
+                            placeholder="Pick a date"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -636,7 +624,7 @@ export default function CreateInvoice() {
                           description: "",
                           quantity: 1,
                           unitPrice: "0",
-                          total: 0,
+                          total: "0",
                         })
                       }
                     >
@@ -697,16 +685,13 @@ export default function CreateInvoice() {
                                 <FormLabel>Quantity</FormLabel>
                                 <FormControl>
                                   <Input
-                                    type="number"
+                                    type="text"
                                     {...field}
                                     onChange={(e) => {
-                                      field.onChange(
-                                        Number.parseInt(e.target.value) || 0
-                                      );
-                                      setTimeout(
-                                        () => updateItemTotal(index),
-                                        0
-                                      );
+                                      const value =
+                                        Number.parseInt(e.target.value) || 0;
+                                      field.onChange(value);
+                                      updateItemTotal(index, value);
                                     }}
                                   />
                                 </FormControl>
@@ -728,11 +713,9 @@ export default function CreateInvoice() {
                                     {...field}
                                     placeholder="0.00"
                                     onChange={(e) => {
-                                      field.onChange(e.target.value);
-                                      setTimeout(
-                                        () => updateItemTotal(index),
-                                        0
-                                      );
+                                      const value = e.target.value;
+                                      field.onChange(value);
+                                      updateItemTotal(index, undefined, value);
                                     }}
                                   />
                                 </FormControl>
@@ -752,8 +735,16 @@ export default function CreateInvoice() {
                                 <FormControl>
                                   <Input
                                     {...field}
-                                    value={field.value?.toFixed(2) || "0.00"}
-                                    disabled
+                                    value={field.value ?? "0"}
+                                    onChange={(e) => {
+                                      field.onChange(e.target.value);
+                                      if (!manualTotalIndexes.includes(index)) {
+                                        setManualTotalIndexes((prev) => [
+                                          ...prev,
+                                          index,
+                                        ]);
+                                      }
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -821,9 +812,26 @@ export default function CreateInvoice() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>CGST Rate (%)</FormLabel>
-                              <FormControl>
-                                <Input type="number" step="0.01" {...field} />
-                              </FormControl>
+                              <Select
+                                onValueChange={handleCGSTRateChange}
+                                value={field.value?.toString()}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select rate" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {CGST_OPTIONS.map((rate) => (
+                                    <SelectItem
+                                      key={rate}
+                                      value={rate.toString()}
+                                    >
+                                      {rate}%
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -836,7 +844,13 @@ export default function CreateInvoice() {
                             <FormItem>
                               <FormLabel>SGST Rate (%)</FormLabel>
                               <FormControl>
-                                <Input type="number" step="0.01" {...field} />
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  {...field}
+                                  disabled
+                                  className="bg-muted"
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -852,9 +866,28 @@ export default function CreateInvoice() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>IGST Rate (%)</FormLabel>
-                            <FormControl>
-                              <Input type="number" step="0.01" {...field} />
-                            </FormControl>
+                            <Select
+                              onValueChange={(value) =>
+                                field.onChange(Number.parseFloat(value))
+                              }
+                              value={field.value?.toString()}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select rate" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {IGST_OPTIONS.map((rate) => (
+                                  <SelectItem
+                                    key={rate}
+                                    value={rate.toString()}
+                                  >
+                                    {rate}%
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -867,9 +900,25 @@ export default function CreateInvoice() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Fuel Surcharge Rate (%)</FormLabel>
-                          <FormControl>
-                            <Input type="number" step="0.01" {...field} />
-                          </FormControl>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(Number.parseFloat(value))
+                            }
+                            value={field.value?.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select rate" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {FUEL_SURCHARGE_OPTIONS.map((rate) => (
+                                <SelectItem key={rate} value={rate.toString()}>
+                                  {rate}%
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -894,44 +943,92 @@ export default function CreateInvoice() {
                       </div>
 
                       {form.watch("gstDetails.type") !== "None" && (
-                        <div className="flex justify-between">
-                          <span>GST Amount:</span>
-                          <span className="font-medium">
-                            ₹{calculatedTotals.gstAmount.toFixed(2)}
-                          </span>
-                        </div>
+                        <>
+                          {form.watch("gstDetails.type") === "CGST" && (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span>
+                                  CGST ({form.watch("gstDetails.cgstRate")}%):
+                                </span>
+                                <span>
+                                  ₹{calculatedTotals.cgstAmount.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>
+                                  SGST ({form.watch("gstDetails.sgstRate")}%):
+                                </span>
+                                <span>
+                                  ₹{calculatedTotals.sgstAmount.toFixed(2)}
+                                </span>
+                              </div>
+                            </>
+                          )}
+
+                          {form.watch("gstDetails.type") === "IGST" && (
+                            <div className="flex justify-between text-sm">
+                              <span>
+                                IGST ({form.watch("gstDetails.igstRate")}%):
+                              </span>
+                              <span>
+                                ₹{calculatedTotals.igstAmount.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+
+                          {calculatedTotals.fuelSurchargeAmount > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span>
+                                Fuel Surcharge (
+                                {form.watch("gstDetails.fuelSurchargeRate")}%):
+                              </span>
+                              <span>
+                                ₹
+                                {calculatedTotals.fuelSurchargeAmount.toFixed(
+                                  2
+                                )}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="flex justify-between font-medium">
+                            <span>Total GST + Surcharge:</span>
+                            <span>
+                              ₹
+                              {(
+                                calculatedTotals.totalGSTAmount +
+                                calculatedTotals.fuelSurchargeAmount
+                              ).toFixed(2)}
+                            </span>
+                          </div>
+                        </>
                       )}
 
-                      <FormField
-                        control={form.control}
-                        name="roundingOff"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex justify-between items-center">
-                              <FormLabel>Rounding Off:</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  {...field}
-                                  className="w-24 text-right"
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      Number.parseFloat(e.target.value) || 0
-                                    )
-                                  }
-                                />
-                              </FormControl>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="flex justify-between">
+                        <span>Total Amount:</span>
+                        <span className="font-medium">
+                          ₹{calculatedTotals.totalAmount.toFixed(2)}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>Rounding Off:</span>
+                        <span
+                          className={`font-medium ${
+                            calculatedTotals.roundingOff >= 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {calculatedTotals.roundingOff >= 0 ? "+" : ""}₹
+                          {calculatedTotals.roundingOff.toFixed(2)}
+                        </span>
+                      </div>
 
                       <Separator />
 
                       <div className="flex justify-between text-lg font-bold">
-                        <span>Total Amount:</span>
+                        <span>Gross Amount:</span>
                         <span>₹{calculatedTotals.grossAmount.toFixed(2)}</span>
                       </div>
 
@@ -944,8 +1041,9 @@ export default function CreateInvoice() {
                             <FormControl>
                               <Textarea
                                 {...field}
-                                className="text-sm"
+                                className="text-sm bg-muted"
                                 readOnly
+                                rows={3}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1037,62 +1135,57 @@ export default function CreateInvoice() {
                     <CardTitle>Bank Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="bankDetails.bankName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bank Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem>
+                      <FormLabel>Bank Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          value={companyObj?.companyBankDetails?.bankName}
+                          disabled
+                          readOnly
+                          className="bg-muted"
+                        />
+                      </FormControl>
+                    </FormItem>
 
-                    <FormField
-                      control={form.control}
-                      name="bankDetails.accNo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Account Number</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem>
+                      <FormLabel>Account Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          value={companyObj?.companyBankDetails?.accNo}
+                          disabled
+                          readOnly
+                          className="bg-muted"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="bankDetails.ifsc"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>IFSC Code</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <FormItem>
+                        <FormLabel>IFSC Code</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={companyObj?.companyBankDetails?.ifsc}
+                            disabled
+                            readOnly
+                            className="bg-muted"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
 
-                      <FormField
-                        control={form.control}
-                        name="bankDetails.branchName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Branch Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <FormItem>
+                        <FormLabel>Branch Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={companyObj?.companyBankDetails?.branchName}
+                            disabled
+                            readOnly
+                            className="bg-muted"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     </div>
                   </CardContent>
                 </Card>
@@ -1172,7 +1265,16 @@ export default function CreateInvoice() {
       <InvoicePreviewDialog
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        invoice={form.getValues()}
+        invoice={{
+          ...form.getValues(),
+          items: form.getValues().items.map((item) => ({
+            ...item,
+            quantity: Number(item.quantity),
+            unitPrice:
+              item.unitPrice === "-" ? "-" : parseFloat(item.unitPrice),
+            total: parseFloat(item.total), // 👈 Ensure this is a number
+          })),
+        }}
         company={companyObj}
         client={clientObj}
         consignee={consigneeObj}

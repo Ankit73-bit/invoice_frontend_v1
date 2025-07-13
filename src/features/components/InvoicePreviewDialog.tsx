@@ -194,7 +194,7 @@ export const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
                             )}
                           </td>
                           <td className="text-right p-2">
-                            ₹{(item.total || 0).toFixed(2)}
+                            ₹{Number.parseFloat(item.total || "0").toFixed(2)}
                           </td>
                         </tr>
                       ))}
