@@ -65,6 +65,8 @@ import {
   IGST_OPTIONS,
 } from "@/features/utils/constant";
 import { DatePicker } from "@/features/components/DatePicker";
+import ClientItems from "../client/ClientItems";
+import AccordionSection from "@/features/components/Accordian";
 
 type FormValues = z.infer<typeof invoiceSchema>;
 
@@ -634,6 +636,9 @@ export default function CreateInvoice() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <AccordionSection title="Client Items">
+                    <ClientItems clientId={clientObj?._id} />
+                  </AccordionSection>
                   <div className="space-y-4">
                     {fields.map((field, index) => (
                       <div
