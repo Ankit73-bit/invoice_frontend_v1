@@ -270,7 +270,12 @@ export default function CreateInvoice() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <AccordionSection title="Client Items">
-        <ClientItems clientId={clientObj?._id} />
+        <ClientItems
+          clientId={clientObj?._id}
+          onItemSelect={(item) => append(item)}
+          onBulkSelect={(items) => items.forEach((i) => append(i))}
+          selectedItems={fields}
+        />
       </AccordionSection>
       <div className="flex items-center justify-between">
         <div>

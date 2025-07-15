@@ -7,7 +7,6 @@ export interface ClientItem {
   description: string;
   unitPrice: number;
   hsnCode: string;
-  isFavorite?: boolean;
   lastUsed?: string;
 }
 
