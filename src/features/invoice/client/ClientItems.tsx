@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Plus,
   Search,
@@ -45,6 +45,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+// ✅ Custom hook & store
+import { useClientItems } from "@/hooks/useClientItems";
+import { useClientItemStore } from "@/store/clientItemStore";
+
 interface ClientItemsManagerProps {
   clientId: string;
   onItemSelect: (item: any) => void;
@@ -58,7 +62,9 @@ export default function ClientItems({
   onBulkSelect,
   selectedItems,
 }: ClientItemsManagerProps) {
-  const [items, setItems] = useState();
+  const { items } = useClientItems(clientId); // fetch items
+  const { addItem, updateItem, deleteItem } = useClientItemStore(); // local store ops
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
@@ -70,10 +76,10 @@ export default function ClientItems({
     key: string;
     direction: "asc" | "desc";
   }>({ key: "description", direction: "asc" });
+
   const [bulkQuantities, setBulkQuantities] = useState<Record<string, number>>(
     {}
   );
-
   const [newItem, setNewItem] = useState({
     description: "",
     unitPrice: "",
@@ -81,55 +87,44 @@ export default function ClientItems({
     category: "",
   });
 
-  // Filter items by selected client
   const clientItems = items.filter((item) => item.clientId === clientId);
 
-  // Get unique categories
   const categories = useMemo(() => {
     const cats = [...new Set(clientItems.map((item) => item.category))];
     return cats.sort();
   }, [clientItems]);
 
-  // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
     let filtered = clientItems;
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
         (item) =>
           item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.hsnCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchQuery.toLowerCase())
+          item.category?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Apply category filter
     if (selectedCategory !== "all") {
       filtered = filtered.filter((item) => item.category === selectedCategory);
     }
 
-    // Apply favorites filter
     if (showFavoritesOnly) {
       filtered = filtered.filter((item) => item.isFavorite);
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
-      let aValue = a[sortConfig.key as keyof typeof a];
-      let bValue = b[sortConfig.key as keyof typeof b];
+      let aVal = a[sortConfig.key as keyof typeof a];
+      let bVal = b[sortConfig.key as keyof typeof b];
 
-      if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = (bValue as string).toLowerCase();
+      if (typeof aVal === "string") {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal as string).toLowerCase();
       }
 
-      if (aValue < bValue) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
+      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -141,6 +136,48 @@ export default function ClientItems({
     showFavoritesOnly,
     sortConfig,
   ]);
+
+  const handleAddItem = async () => {
+    try {
+      const itemToAdd = {
+        _id: Date.now().toString(),
+        clientId,
+        ...newItem,
+        unitPrice: Number.parseFloat(newItem.unitPrice),
+        isFavorite: false,
+        lastUsed: new Date().toISOString().split("T")[0],
+      };
+
+      addItem(itemToAdd);
+      setNewItem({ description: "", unitPrice: "", hsnCode: "", category: "" });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to add item:", error);
+    }
+  };
+
+  const handleUpdateItem = async () => {
+    try {
+      const updatedItem = {
+        ...editingItem,
+        unitPrice: Number.parseFloat(editingItem.unitPrice),
+      };
+
+      updateItem(updatedItem);
+      setEditingItem(null);
+    } catch (error) {
+      console.error("Failed to update item:", error);
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      deleteItem(itemId);
+      setSelectedItemIds((prev) => prev.filter((id) => id !== itemId));
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+    }
+  };
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
@@ -155,64 +192,6 @@ export default function ClientItems({
       <ArrowUp className="h-3 w-3" />
     ) : (
       <ArrowDown className="h-3 w-3" />
-    );
-  };
-
-  const handleAddItem = async () => {
-    try {
-      const itemToAdd = {
-        _id: Date.now().toString(),
-        clientId,
-        ...newItem,
-        unitPrice: Number.parseFloat(newItem.unitPrice),
-        isFavorite: false,
-        lastUsed: new Date().toISOString().split("T")[0],
-      };
-
-      setItems((prev) => [...prev, itemToAdd]);
-      setNewItem({ description: "", unitPrice: "", hsnCode: "", category: "" });
-      setIsAddDialogOpen(false);
-
-      console.log("Creating client item:", itemToAdd);
-    } catch (error) {
-      console.error("Failed to add item:", error);
-    }
-  };
-
-  const handleUpdateItem = async () => {
-    try {
-      const updatedItem = {
-        ...editingItem,
-        unitPrice: Number.parseFloat(editingItem.unitPrice),
-      };
-
-      setItems((prev) =>
-        prev.map((item) => (item._id === editingItem._id ? updatedItem : item))
-      );
-      setEditingItem(null);
-
-      console.log("Updating client item:", updatedItem);
-    } catch (error) {
-      console.error("Failed to update item:", error);
-    }
-  };
-
-  const handleDeleteItem = async (itemId: string) => {
-    try {
-      setItems((prev) => prev.filter((item) => item._id !== itemId));
-      setSelectedItemIds((prev) => prev.filter((id) => id !== itemId));
-
-      console.log("Deleting client item:", itemId);
-    } catch (error) {
-      console.error("Failed to delete item:", error);
-    }
-  };
-
-  const handleToggleFavorite = (itemId: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item._id === itemId ? { ...item, isFavorite: !item.isFavorite } : item
-      )
     );
   };
 
@@ -296,7 +275,6 @@ export default function ClientItems({
       ],
       ...filteredAndSortedItems.map((item) => [
         item.description,
-        item.category,
         item.hsnCode,
         item.unitPrice.toString(),
         item.isFavorite ? "Yes" : "No",
@@ -429,39 +407,6 @@ export default function ClientItems({
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Category</label>
-                    <Select
-                      value={newItem.category}
-                      onValueChange={(value) =>
-                        setNewItem((prev) => ({ ...prev, category: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="new">+ Add New Category</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {newItem.category === "new" && (
-                      <Input
-                        className="mt-2"
-                        placeholder="Enter new category"
-                        onChange={(e) =>
-                          setNewItem((prev) => ({
-                            ...prev,
-                            category: e.target.value,
-                          }))
-                        }
-                      />
-                    )}
-                  </div>
                 </div>
                 <DialogFooter>
                   <Button
@@ -489,7 +434,7 @@ export default function ClientItems({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search items by description, HSN code, or category..."
+                  placeholder="Search items by description, HSN code..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -497,23 +442,6 @@ export default function ClientItems({
               </div>
 
               <div className="flex gap-2">
-                <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
                 <Button
                   variant={showFavoritesOnly ? "default" : "outline"}
                   size="sm"
@@ -650,16 +578,6 @@ export default function ClientItems({
                           className="font-medium p-0 h-auto"
                         >
                           Description {getSortIcon("description")}
-                        </Button>
-                      </th>
-                      <th className="p-3 text-left">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort("category")}
-                          className="font-medium p-0 h-auto"
-                        >
-                          Category {getSortIcon("category")}
                         </Button>
                       </th>
                       <th className="p-3 text-left">

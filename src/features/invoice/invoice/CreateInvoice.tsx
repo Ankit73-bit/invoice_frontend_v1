@@ -269,6 +269,9 @@ export default function CreateInvoice() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <AccordionSection title="Client Items">
+        <ClientItems clientId={clientObj?._id} />
+      </AccordionSection>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Create Invoice</h1>
@@ -636,9 +639,6 @@ export default function CreateInvoice() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <AccordionSection title="Client Items">
-                    <ClientItems clientId={clientObj?._id} />
-                  </AccordionSection>
                   <div className="space-y-4">
                     {fields.map((field, index) => (
                       <div
