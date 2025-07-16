@@ -33,6 +33,7 @@ export const invoiceSchema = z.object({
   company: z.string().optional(), // attached before POST
   client: z.string(),
   consignee: z.string().optional(),
+  createdBy: z.string().optional(),
 
   // Items
   items: z.array(

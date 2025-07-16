@@ -71,6 +71,7 @@ export interface Invoice {
   inWords?: string;
   status: "Pending" | "Paid" | "Overdue";
   createdAt: string;
+  createdBy: string;
 }
 
 interface InvoiceStore {

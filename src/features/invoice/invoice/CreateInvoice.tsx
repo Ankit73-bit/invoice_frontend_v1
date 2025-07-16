@@ -108,6 +108,7 @@ export default function CreateInvoice() {
         sgstRate: 9,
       },
       roundingOff: 0,
+      createdBy: user,
     },
   });
 
@@ -143,14 +144,14 @@ export default function CreateInvoice() {
 
   const calculatedTotals = useMemo(() => {
     const totalBeforeGST = watchedItems.reduce((sum, item) => {
-      const total = parseFloat(item.total || "0");
+      const total = Number.parseFloat(item.total || "0");
       return sum + (isNaN(total) ? 0 : total);
     }, 0);
 
-    const cgstRate = parseFloat(gst.cgstRate || "0");
-    const sgstRate = parseFloat(gst.sgstRate || "0");
-    const igstRate = parseFloat(gst.igstRate || "0");
-    const fuelRate = parseFloat(gst.fuelSurchargeRate || "0");
+    const cgstRate = Number.parseFloat(gst.cgstRate || "0");
+    const sgstRate = Number.parseFloat(gst.sgstRate || "0");
+    const igstRate = Number.parseFloat(gst.igstRate || "0");
+    const fuelRate = Number.parseFloat(gst.fuelSurchargeRate || "0");
 
     const cgstAmount = (totalBeforeGST * cgstRate) / 100;
     const sgstAmount = (totalBeforeGST * sgstRate) / 100;
@@ -161,7 +162,9 @@ export default function CreateInvoice() {
     const totalAmount = totalBeforeGST + totalGSTAmount + fuelSurchargeAmount;
 
     const grossAmount = Math.round(totalAmount);
-    const roundingOff = parseFloat((grossAmount - totalAmount).toFixed(2));
+    const roundingOff = Number.parseFloat(
+      (grossAmount - totalAmount).toFixed(2)
+    );
 
     return {
       totalBeforeGST,
@@ -212,7 +215,7 @@ export default function CreateInvoice() {
       setManualTotalIndexes((prev) => prev.filter((i) => i !== index));
     }
 
-    const price = parseFloat(unitPriceRaw);
+    const price = Number.parseFloat(unitPriceRaw);
     if (!isNaN(price)) {
       const total = quantity * price;
       form.setValue(`items.${index}.total`, total.toFixed(2));
@@ -226,7 +229,7 @@ export default function CreateInvoice() {
 
         return {
           ...item,
-          unitPrice: isManual ? "-" : parseFloat(item.unitPrice),
+          unitPrice: isManual ? "-" : Number.parseFloat(item.unitPrice),
           quantity: Number(item.quantity),
           total: Number(item.total),
         };
@@ -530,7 +533,7 @@ export default function CreateInvoice() {
                       name="consignee"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Select Consignee (Optional)</FormLabel>
+                          <FormLabel>Select Consignee</FormLabel>
                           <FormControl>
                             <ConsigneeSelect
                               consignees={consignees}
@@ -624,7 +627,7 @@ export default function CreateInvoice() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    Invoice Items
+                    Invoice Items ({fields.length})
                     <Button
                       type="button"
                       variant="outline"
@@ -644,138 +647,350 @@ export default function CreateInvoice() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {fields.map((field, index) => (
-                      <div
-                        key={field.id}
-                        className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg"
-                      >
-                        <div className="col-span-12 md:col-span-4">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    {...field}
-                                    placeholder="Item description"
-                                    className="min-h-[60px]"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                  <div className="space-y-2">
+                    {/* Header Row */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 p-3 bg-muted/50 rounded-lg text-sm font-medium">
+                      <div className="col-span-4">Description</div>
+                      <div className="col-span-2">HSN Code</div>
+                      <div className="col-span-1">Qty</div>
+                      <div className="col-span-2">Unit Price</div>
+                      <div className="col-span-2">Total</div>
+                      <div className="col-span-1">Action</div>
+                    </div>
 
-                        <div className="col-span-6 md:col-span-2">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.hsnCode`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>HSN Code</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="HSN" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                    {/* Items List */}
+                    <div className="max-h-[600px] overflow-y-auto space-y-2">
+                      {fields.map((field, index) => (
+                        <div
+                          key={field.id}
+                          className="group border rounded-lg p-4 hover:bg-muted/30 transition-colors"
+                        >
+                          {/* Mobile Layout */}
+                          <div className="md:hidden space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-muted-foreground">
+                                Item #{index + 1}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => remove(index)}
+                                disabled={fields.length === 1}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
 
-                        <div className="col-span-6 md:col-span-2">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.quantity`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Quantity</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="text"
-                                    {...field}
-                                    onChange={(e) => {
-                                      const value =
-                                        Number.parseInt(e.target.value) || 0;
-                                      field.onChange(value);
-                                      updateItemTotal(index, value);
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.description`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Description</FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      {...field}
+                                      placeholder="Item description"
+                                      className="min-h-[60px]"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
 
-                        <div className="col-span-6 md:col-span-2">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.unitPrice`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Unit Price</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="0.00"
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-                                      field.onChange(value);
-                                      updateItemTotal(index, undefined, value);
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.hsnCode`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>HSN Code</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder="HSN" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
 
-                        <div className="col-span-6 md:col-span-1">
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.total`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Total</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    value={field.value ?? "0"}
-                                    onChange={(e) => {
-                                      field.onChange(e.target.value);
-                                      if (!manualTotalIndexes.includes(index)) {
-                                        setManualTotalIndexes((prev) => [
-                                          ...prev,
-                                          index,
-                                        ]);
-                                      }
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.quantity`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Quantity</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="text"
+                                        {...field}
+                                        onChange={(e) => {
+                                          const value =
+                                            Number.parseInt(e.target.value) ||
+                                            0;
+                                          field.onChange(value);
+                                          updateItemTotal(index, value);
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
 
-                        <div className="col-span-12 md:col-span-1">
+                            <div className="grid grid-cols-2 gap-3">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.unitPrice`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Unit Price</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder="0.00"
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          field.onChange(value);
+                                          updateItemTotal(
+                                            index,
+                                            undefined,
+                                            value
+                                          );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.total`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Total</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        value={field.value ?? "0"}
+                                        onChange={(e) => {
+                                          field.onChange(e.target.value);
+                                          if (
+                                            !manualTotalIndexes.includes(index)
+                                          ) {
+                                            setManualTotalIndexes((prev) => [
+                                              ...prev,
+                                              index,
+                                            ]);
+                                          }
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Desktop Layout */}
+                          <div className="hidden md:grid grid-cols-12 gap-4 items-start">
+                            <div className="col-span-4">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Textarea
+                                        {...field}
+                                        placeholder="Item description"
+                                        className="min-h-[40px] resize-none"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="col-span-2">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.hsnCode`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input {...field} placeholder="HSN" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="col-span-1">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.quantity`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        type="text"
+                                        {...field}
+                                        onChange={(e) => {
+                                          const value =
+                                            Number.parseInt(e.target.value) ||
+                                            0;
+                                          field.onChange(value);
+                                          updateItemTotal(index, value);
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="col-span-2">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.unitPrice`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder="0.00"
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          field.onChange(value);
+                                          updateItemTotal(
+                                            index,
+                                            undefined,
+                                            value
+                                          );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="col-span-2">
+                              <FormField
+                                control={form.control}
+                                name={`items.${index}.total`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        value={field.value ?? "0"}
+                                        onChange={(e) => {
+                                          field.onChange(e.target.value);
+                                          if (
+                                            !manualTotalIndexes.includes(index)
+                                          ) {
+                                            setManualTotalIndexes((prev) => [
+                                              ...prev,
+                                              index,
+                                            ]);
+                                          }
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="col-span-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => remove(index)}
+                                disabled={fields.length === 1}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Summary Row */}
+                    {fields.length > 0 && (
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="font-medium">
+                            Total Items: {fields.length}
+                          </span>
+                          <span className="font-medium">
+                            Subtotal: ₹
+                            {calculatedTotals.totalBeforeGST.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bulk Actions */}
+                    {fields.length > 1 && (
+                      <div className="flex justify-between items-center pt-4 border-t">
+                        <div className="text-sm text-muted-foreground">
+                          {fields.length} items added
+                        </div>
+                        <div className="flex gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => remove(index)}
-                            disabled={fields.length === 1}
+                            onClick={() => {
+                              // Clear all items except the first one
+                              const itemsToRemove = fields.length - 1;
+                              for (let i = 0; i < itemsToRemove; i++) {
+                                remove(fields.length - 1 - i);
+                              }
+                            }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            Clear All
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // Duplicate the last item
+                              const lastItem = fields[fields.length - 1];
+                              if (lastItem) {
+                                append({
+                                  description: "",
+                                  quantity: 1,
+                                  unitPrice: "0",
+                                  total: "0",
+                                });
+                              }
+                            }}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Quick Add
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1281,8 +1496,8 @@ export default function CreateInvoice() {
             ...item,
             quantity: Number(item.quantity),
             unitPrice:
-              item.unitPrice === "-" ? "-" : parseFloat(item.unitPrice),
-            total: parseFloat(item.total), // 👈 Ensure this is a number
+              item.unitPrice === "-" ? "-" : Number.parseFloat(item.unitPrice),
+            total: Number.parseFloat(item.total), // 👈 Ensure this is a number
           })),
         }}
         company={companyObj}

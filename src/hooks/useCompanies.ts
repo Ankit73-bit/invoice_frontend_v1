@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import { useLoaderStore } from "@/store/loaderStore";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export interface Company {
   _id: string;

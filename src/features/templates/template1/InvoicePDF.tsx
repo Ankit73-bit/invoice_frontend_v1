@@ -1,5 +1,10 @@
 import type React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import CompanyDetails from "./CompanyDetails";
+import InvoiceDetails from "./InvoiceDetails";
+import ConsigneeDetails from "./ConsgineeDetails";
+import ClientDetails from "./ClientDetails";
+import TermsOfDelivery from "./TermsOfDelivery";
 
 // Register fonts if needed
 // Font.register({
@@ -8,132 +13,41 @@ import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 // });
 
 const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#FFFFFF",
-    padding: 30,
-    fontSize: 10,
-    fontFamily: "Helvetica",
-  },
+  page: { padding: 20, fontSize: 10 },
   header: {
-    marginBottom: 20,
     textAlign: "center",
-  },
-  companyName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  companyAddress: {
-    fontSize: 10,
-    color: "#666",
-    marginBottom: 2,
-  },
-  invoiceTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: 15,
-    textDecoration: "underline",
-  },
-  section: {
-    marginBottom: 15,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 5,
-  },
-  column: {
-    flexDirection: "column",
-    flex: 1,
-  },
-  label: {
-    fontWeight: "bold",
-    marginBottom: 2,
-  },
-  value: {
-    marginBottom: 8,
-  },
-  table: {
-    display: "table",
-    width: "auto",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#000",
-    marginVertical: 10,
-  },
-  tableRow: {
-    margin: "auto",
-    flexDirection: "row",
-  },
-  tableHeader: {
-    backgroundColor: "#f0f0f0",
-  },
-  tableCol: {
-    width: "20%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#000",
     padding: 5,
+    letterSpacing: 1,
+    backgroundColor: "#E9EAEC",
+    borderTop: "1px solid black",
+    borderLeft: "1px solid black",
+    borderRight: "1px solid black",
   },
-  tableColDescription: {
-    width: "40%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#000",
-    padding: 5,
-  },
-  tableCell: {
-    fontSize: 9,
-    textAlign: "center",
-  },
-  tableCellLeft: {
-    fontSize: 9,
-    textAlign: "left",
-  },
-  totalsSection: {
-    marginTop: 20,
-    alignItems: "flex-end",
-  },
-  totalRow: {
+  section1: {
+    border: "1px solid black",
+    display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
-    width: 200,
-    marginBottom: 3,
   },
-  totalLabel: {
-    fontWeight: "bold",
+  section2: {
+    borderBottom: "1px solid black",
+    borderLeft: "1px solid black",
+    borderRight: "1px solid black",
   },
-  grandTotal: {
-    fontSize: 12,
-    fontWeight: "bold",
-    borderTopWidth: 1,
-    borderTopColor: "#000",
-    paddingTop: 5,
+  sectionClientAddress: {
+    display: "flex",
+    flexDirection: "row",
   },
-  bankDetails: {
-    marginTop: 20,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#000",
-    borderStyle: "solid",
+  section3: {
+    borderBottom: "1px solid black",
+    borderLeft: "1px solid black",
+    borderRight: "1px solid black",
   },
-  bankTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 8,
+  section4: {
+    borderBottom: "1px solid black",
+    borderLeft: "1px solid black",
+    borderRight: "1px solid black",
   },
-  footer: {
-    marginTop: 30,
-    borderTopWidth: 1,
-    borderTopColor: "#000",
-    paddingTop: 10,
-  },
-  signature: {
-    textAlign: "right",
-    marginTop: 40,
-  },
+  text: { fontSize: 12 },
 });
 
 interface InvoicePDFProps {
@@ -158,11 +72,29 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
   company,
   client,
   consignee,
-}) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
+}) => {
+  console.log(invoice);
+  return (
+    <Document>
+      <Page style={styles.page} wrap={true}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text>Tax Invoice (Original)</Text>
+        </View>
+        <View style={styles.section1}>
+          <CompanyDetails company={company} />
+          <InvoiceDetails invoice={invoice} />
+        </View>
+        <View style={styles.sectionClientAddress}>
+          <ConsigneeDetails consignee={consignee} />
+          <ClientDetails client={client} />
+        </View>
+        {invoice.termsOfDelivery?.length > 0 && (
+          <View style={styles.section3}>
+            <TermsOfDelivery terms={invoice.termsOfDelivery} />
+          </View>
+        )}
+        {/* <View style={styles.header}>
         <Text style={styles.companyName}>
           {company?.companyName || "Company Name"}
         </Text>
@@ -180,9 +112,8 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </Text>
       </View>
 
-      <Text style={styles.invoiceTitle}>TAX INVOICE</Text>
-
-      {/* Invoice Details */}
+      <Text style={styles.invoiceTitle}>TAX INVOICE</Text> */}
+        {/* 
       <View style={styles.section}>
         <View style={styles.row}>
           <View style={styles.column}>
@@ -208,7 +139,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </View>
       </View>
 
-      {/* Bill To / Ship To */}
       <View style={styles.section}>
         <View style={styles.row}>
           <View style={styles.column}>
@@ -239,7 +169,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </View>
       </View>
 
-      {/* Items Table */}
       <View style={styles.table}>
         <View style={[styles.tableRow, styles.tableHeader]}>
           <View style={styles.tableColDescription}>
@@ -283,7 +212,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         ))}
       </View>
 
-      {/* Totals */}
       <View style={styles.totalsSection}>
         <View style={styles.totalRow}>
           <Text>Subtotal:</Text>
@@ -328,7 +256,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </View>
       </View>
 
-      {/* Amount in Words */}
       {invoice.inWords && (
         <View style={styles.section}>
           <Text style={styles.label}>Amount in Words:</Text>
@@ -336,7 +263,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </View>
       )}
 
-      {/* Bank Details */}
       {invoice.bankDetails && (
         <View style={styles.bankDetails}>
           <Text style={styles.bankTitle}>Bank Details:</Text>
@@ -347,7 +273,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </View>
       )}
 
-      {/* Notes and Declaration */}
       {invoice.note && (
         <View style={styles.section}>
           <Text style={styles.label}>Notes:</Text>
@@ -362,13 +287,13 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         </View>
       )}
 
-      {/* Footer */}
       <View style={styles.footer}>
         <View style={styles.signature}>
           <Text>For {company?.companyName}</Text>
           <Text style={{ marginTop: 30 }}>Authorized Signatory</Text>
         </View>
-      </View>
-    </Page>
-  </Document>
-);
+      </View> */}
+      </Page>
+    </Document>
+  );
+};

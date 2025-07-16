@@ -10,6 +10,7 @@ import {
   Download,
   Edit,
   X,
+  MoreHorizontal,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,16 @@ import {
 // ✅ Custom hook & store
 import { useClientItems } from "@/hooks/useClientItems";
 import { useClientItemStore } from "@/store/clientItemStore";
+import { api } from "@/lib/api";
+import { useCompanyContext } from "@/store/companyContextStore";
+import { toast } from "react-toastify";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSubContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ClientItemsManagerProps {
   clientId: string;
@@ -63,14 +74,15 @@ export default function ClientItems({
   selectedItems,
 }: ClientItemsManagerProps) {
   const { items } = useClientItems(clientId); // fetch items
-  const { addItem, updateItem, deleteItem } = useClientItemStore(); // local store ops
+  const { selectedCompanyId } = useCompanyContext();
+
+  const { addItem, updateItem, deleteItem } = useClientItemStore();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -84,15 +96,13 @@ export default function ClientItems({
     description: "",
     unitPrice: "",
     hsnCode: "",
-    category: "",
   });
 
-  const clientItems = items.filter((item) => item.clientId === clientId);
-
-  const categories = useMemo(() => {
-    const cats = [...new Set(clientItems.map((item) => item.category))];
-    return cats.sort();
-  }, [clientItems]);
+  const clientItems = items.filter((item) =>
+    typeof item.clientId === "object"
+      ? item.clientId._id === clientId
+      : item.clientId === clientId
+  );
 
   const filteredAndSortedItems = useMemo(() => {
     let filtered = clientItems;
@@ -101,17 +111,8 @@ export default function ClientItems({
       filtered = filtered.filter(
         (item) =>
           item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.hsnCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.category?.toLowerCase().includes(searchQuery.toLowerCase())
+          item.hsnCode.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    }
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((item) => item.category === selectedCategory);
-    }
-
-    if (showFavoritesOnly) {
-      filtered = filtered.filter((item) => item.isFavorite);
     }
 
     filtered.sort((a, b) => {
@@ -129,27 +130,20 @@ export default function ClientItems({
     });
 
     return filtered;
-  }, [
-    clientItems,
-    searchQuery,
-    selectedCategory,
-    showFavoritesOnly,
-    sortConfig,
-  ]);
+  }, [clientItems, searchQuery, sortConfig]);
 
   const handleAddItem = async () => {
     try {
       const itemToAdd = {
-        _id: Date.now().toString(),
         clientId,
         ...newItem,
         unitPrice: Number.parseFloat(newItem.unitPrice),
-        isFavorite: false,
-        lastUsed: new Date().toISOString().split("T")[0],
+        company: selectedCompanyId,
       };
-
-      addItem(itemToAdd);
-      setNewItem({ description: "", unitPrice: "", hsnCode: "", category: "" });
+      const res = await api.post("client-items", itemToAdd);
+      addItem(res.data.data);
+      toast.success("Item created successfully!");
+      setNewItem({ description: "", unitPrice: "", hsnCode: "" });
       setIsAddDialogOpen(false);
     } catch (error) {
       console.error("Failed to add item:", error);
@@ -162,8 +156,12 @@ export default function ClientItems({
         ...editingItem,
         unitPrice: Number.parseFloat(editingItem.unitPrice),
       };
-
-      updateItem(updatedItem);
+      const res = await api.patch(
+        `client-items/${editingItem._id}`,
+        updatedItem
+      );
+      toast.success("Item updated successfully!");
+      updateItem(res.data.data);
       setEditingItem(null);
     } catch (error) {
       console.error("Failed to update item:", error);
@@ -172,6 +170,8 @@ export default function ClientItems({
 
   const handleDeleteItem = async (itemId: string) => {
     try {
+      const res = await api.delete(`client-items/${itemId}`);
+      toast.success("Item deleted successfully!");
       deleteItem(itemId);
       setSelectedItemIds((prev) => prev.filter((id) => id !== itemId));
     } catch (error) {
@@ -265,19 +265,11 @@ export default function ClientItems({
 
   const handleExportItems = () => {
     const csvContent = [
-      [
-        "Description",
-        "Category",
-        "HSN Code",
-        "Unit Price",
-        "Favorite",
-        "Last Used",
-      ],
+      ["Description", "HSN Code", "Unit Price", "Last Used"],
       ...filteredAndSortedItems.map((item) => [
         item.description,
         item.hsnCode,
         item.unitPrice.toString(),
-        item.isFavorite ? "Yes" : "No",
         item.lastUsed,
       ]),
     ]
@@ -487,7 +479,7 @@ export default function ClientItems({
             <div className="flex items-center justify-between mb-4 p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-4">
                 <span className="text-sm text-muted-foreground">
-                  {selectedItemIds.length} of {filteredAndSortedItems.length}{" "}
+                  {selectedItemIds.length} of {filteredAndSortedItems.length}
                   selected
                 </span>
                 {selectedItemIds.length > 0 && (
@@ -600,16 +592,6 @@ export default function ClientItems({
                           Unit Price {getSortIcon("unitPrice")}
                         </Button>
                       </th>
-                      <th className="p-3 text-left">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort("lastUsed")}
-                          className="font-medium p-0 h-auto"
-                        >
-                          Last Used {getSortIcon("lastUsed")}
-                        </Button>
-                      </th>
                       <th className="p-3 text-left font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -638,69 +620,42 @@ export default function ClientItems({
                             </p>
                           </div>
                         </td>
-                        <td className="p-3">
-                          <Badge variant="secondary" className="text-xs">
-                            {item.category}
-                          </Badge>
-                        </td>
                         <td className="p-3 text-sm text-muted-foreground">
                           {item.hsnCode}
                         </td>
                         <td className="p-3 font-semibold">
                           ₹{item.unitPrice.toLocaleString()}
                         </td>
-                        <td className="p-3 text-sm text-muted-foreground">
-                          {item.lastUsed}
-                        </td>
                         <td className="p-3">
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleToggleFavorite(item._id)}
-                              title={
-                                item.isFavorite
-                                  ? "Remove from favorites"
-                                  : "Add to favorites"
-                              }
-                            >
-                              <Star
-                                className={`h-3 w-3 ${
-                                  item.isFavorite
-                                    ? "fill-current text-yellow-500"
-                                    : ""
-                                }`}
-                              />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleSelectItem(item)}
-                              title="Add single item"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => setEditingItem(item)}
-                              title="Edit item"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteItem(item._id)}
-                              title="Delete item"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                              >
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleSelectItem(item)}
+                              >
+                                Add
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setEditingItem(item)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => handleDeleteItem(item._id)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))}
@@ -731,12 +686,6 @@ export default function ClientItems({
                             className="rounded"
                             onClick={(e) => e.stopPropagation()}
                           />
-                          <Badge variant="secondary" className="text-xs">
-                            {item.category}
-                          </Badge>
-                          {item.isFavorite && (
-                            <Star className="h-3 w-3 fill-current text-yellow-500" />
-                          )}
                         </div>
                         <div className="flex gap-1">
                           <Button
@@ -785,9 +734,6 @@ export default function ClientItems({
                         <span className="font-semibold">
                           ₹{item.unitPrice.toLocaleString()}
                         </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Last used: {item.lastUsed}
                       </div>
                       {selectedItemIds.includes(item._id) && (
                         <div className="mt-2 flex items-center gap-2">
@@ -865,29 +811,6 @@ export default function ClientItems({
                       placeholder="HSN Code"
                     />
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Category</label>
-                  <Select
-                    value={editingItem.category}
-                    onValueChange={(value) =>
-                      setEditingItem((prev: any) => ({
-                        ...prev,
-                        category: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             )}
