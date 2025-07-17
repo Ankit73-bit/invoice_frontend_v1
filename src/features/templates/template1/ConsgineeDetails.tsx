@@ -13,9 +13,14 @@ const consigneeStyles = StyleSheet.create({
     fontWeight: "semibold",
     fontSize: 10,
   },
+  dataFrom: {
+    fontStyle: "italic",
+    fontWeight: "bold",
+    color: "#0096FF",
+  },
 });
 
-function ConsigneeDetails({ consignee }) {
+function ConsigneeDetails({ consignee, invoice }) {
   if (!consignee) {
     return (
       <View style={consigneeStyles.container}>
@@ -38,6 +43,9 @@ function ConsigneeDetails({ consignee }) {
       )}
       {consignee?.address?.panNo && <Text>PAN: {consignee.address.panNo}</Text>}
       {consignee?.address?.gstNo && <Text>GST: {consignee.address.gstNo}</Text>}
+      {invoice?.dataFrom && (
+        <Text style={consigneeStyles.dataFrom}>{invoice?.dataFrom}</Text>
+      )}
     </View>
   );
 }

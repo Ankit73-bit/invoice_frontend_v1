@@ -21,14 +21,16 @@ function InvoiceDetails({ invoice }) {
         invoiceDate={invoice.date}
       />
       <ReferenceDetails
-        referenceNo={invoice.referenceNo}
-        referenceDate={invoice.referenceDate}
+        referenceNo={invoice.detailsSchema.referenceNo}
+        referenceDate={invoice.detailsSchema.referenceDate}
       />
       <PurchaseDetails
-        purchaseNo={invoice.purchaseNo}
-        purchaseDate={invoice.purchaseDate}
+        purchaseNo={invoice.detailsSchema.purchaseNo}
+        purchaseDate={invoice.detailsSchema.purchaseDate}
       />
-      <DispatchDetails dispatchDetails={invoice?.dispatchDetails} />
+      <DispatchDetails
+        dispatchDetails={invoice?.detailsSchema.dispatchDetails}
+      />
     </View>
   );
 }

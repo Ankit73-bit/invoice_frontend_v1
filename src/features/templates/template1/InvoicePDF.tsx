@@ -5,6 +5,10 @@ import InvoiceDetails from "./InvoiceDetails";
 import ConsigneeDetails from "./ConsgineeDetails";
 import ClientDetails from "./ClientDetails";
 import TermsOfDelivery from "./TermsOfDelivery";
+import DescriptionHead from "./DescriptionHead";
+import Description from "./Description";
+import Note from "./Note";
+import AmountDetails from "./AmountDetails";
 
 // Register fonts if needed
 // Font.register({
@@ -77,7 +81,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
   return (
     <Document>
       <Page style={styles.page} wrap={true}>
-        {/* Header */}
         <View style={styles.header}>
           <Text>Tax Invoice (Original)</Text>
         </View>
@@ -86,14 +89,24 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
           <InvoiceDetails invoice={invoice} />
         </View>
         <View style={styles.sectionClientAddress}>
-          <ConsigneeDetails consignee={consignee} />
+          <ConsigneeDetails consignee={consignee} invoice={invoice} />
           <ClientDetails client={client} />
         </View>
-        {invoice.termsOfDelivery?.length > 0 && (
+        {invoice?.detailsSchema?.termsOfDelivery?.length > 0 && (
           <View style={styles.section3}>
-            <TermsOfDelivery terms={invoice.termsOfDelivery} />
+            <TermsOfDelivery terms={invoice.detailsSchema.termsOfDelivery} />
           </View>
         )}
+        <View style={styles.section2}>
+          <DescriptionHead />
+
+          {/* {isPiramal && <HrDescription hrDescription={hrDescription} />} */}
+          <Description items={invoice.items} />
+          <Note note={invoice.note} />
+        </View>
+        <View style={styles.section3}>
+          <AmountDetails invoice={invoice} />
+        </View>
         {/* <View style={styles.header}>
         <Text style={styles.companyName}>
           {company?.companyName || "Company Name"}

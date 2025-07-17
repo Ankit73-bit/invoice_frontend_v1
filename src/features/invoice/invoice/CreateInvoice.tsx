@@ -98,17 +98,28 @@ export default function CreateInvoice() {
       status: "Pending",
       client: "",
       consignee: "",
-      dispatchDetails: {},
+      detailsSchema: {},
       hrDescription: {},
       company: "",
-      items: [{ description: "", quantity: 1, unitPrice: "0", total: "0" }],
+      items: [
+        {
+          description: "",
+          hsnCode: "",
+          quantity: 1,
+          unitPrice: "0",
+          total: "0",
+        },
+      ],
       gstDetails: {
         type: "CGST",
         cgstRate: 9,
         sgstRate: 9,
+        fuelSurchargeRate: 0,
       },
+      note: "",
+      declaration: "",
       roundingOff: 0,
-      createdBy: user,
+      createdBy: "",
     },
   });
 
@@ -158,8 +169,9 @@ export default function CreateInvoice() {
     const igstAmount = (totalBeforeGST * igstRate) / 100;
     const fuelSurchargeAmount = (totalBeforeGST * fuelRate) / 100;
 
-    const totalGSTAmount = cgstAmount + sgstAmount + igstAmount;
-    const totalAmount = totalBeforeGST + totalGSTAmount + fuelSurchargeAmount;
+    const totalGSTAmount =
+      cgstAmount + sgstAmount + igstAmount + fuelSurchargeAmount;
+    const totalAmount = totalBeforeGST + totalGSTAmount;
 
     const grossAmount = Math.round(totalAmount);
     const roundingOff = Number.parseFloat(
@@ -180,11 +192,67 @@ export default function CreateInvoice() {
   }, [watchedItems, gst]);
 
   useEffect(() => {
-    const grossAmount = calculatedTotals.grossAmount;
-    if (grossAmount > 0) {
-      form.setValue("inWords", `${ConvertToWords(grossAmount)}`);
+    // Only update if the value is actually different
+    const currentInWords = form.getValues("inWords");
+    const newInWords = ConvertToWords(calculatedTotals.grossAmount);
+
+    if (form.getValues("totalBeforeGST") !== calculatedTotals.totalBeforeGST) {
+      form.setValue("totalBeforeGST", calculatedTotals.totalBeforeGST);
     }
-  }, [calculatedTotals.grossAmount, form]);
+
+    if (form.getValues("grossAmount") !== calculatedTotals.grossAmount) {
+      form.setValue("grossAmount", calculatedTotals.grossAmount);
+    }
+
+    if (form.getValues("roundingOff") !== calculatedTotals.roundingOff) {
+      form.setValue("roundingOff", calculatedTotals.roundingOff);
+    }
+
+    const gstType = form.getValues("gstDetails.type");
+
+    if (gstType === "CGST") {
+      if (form.getValues("gstDetails.cgst") !== calculatedTotals.cgstAmount) {
+        form.setValue("gstDetails.cgst", calculatedTotals.cgstAmount);
+      }
+      if (form.getValues("gstDetails.sgst") !== calculatedTotals.sgstAmount) {
+        form.setValue("gstDetails.sgst", calculatedTotals.sgstAmount);
+      }
+    } else if (gstType === "IGST") {
+      if (form.getValues("gstDetails.igst") !== calculatedTotals.igstAmount) {
+        form.setValue("gstDetails.igst", calculatedTotals.igstAmount);
+      }
+    }
+
+    if (
+      form.getValues("gstDetails.fuelSurcharge") !==
+      calculatedTotals.fuelSurchargeAmount
+    ) {
+      form.setValue(
+        "gstDetails.fuelSurcharge",
+        calculatedTotals.fuelSurchargeAmount
+      );
+    }
+
+    if (
+      form.getValues("gstDetails.totalGstAmount") !==
+      calculatedTotals.totalGSTAmount
+    ) {
+      form.setValue(
+        "gstDetails.totalGstAmount",
+        calculatedTotals.totalGSTAmount
+      );
+    }
+
+    if (
+      form.getValues("gstDetails.totalAmount") !== calculatedTotals.totalAmount
+    ) {
+      form.setValue("gstDetails.totalAmount", calculatedTotals.totalAmount);
+    }
+
+    if (currentInWords !== newInWords) {
+      form.setValue("inWords", newInWords);
+    }
+  }, [calculatedTotals, form]);
 
   // Handle CGST rate change to sync SGST
   const handleCGSTRateChange = (value: string) => {
@@ -239,6 +307,7 @@ export default function CreateInvoice() {
         ...values,
         company: selectedCompanyId,
         items: cleanedItems,
+        createdBy: user,
       });
       // Replace with your API call
       // await api.post("/invoices", { ...values, company: selectedCompanyId })
@@ -288,7 +357,7 @@ export default function CreateInvoice() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+          {/* <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
                 <Template className="h-4 w-4 mr-2" />
@@ -304,7 +373,7 @@ export default function CreateInvoice() {
               </DialogHeader>
               <InvoiceTemplates onSelectTemplate={handleTemplateSelect} />
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
           <Badge variant="outline" className="text-lg px-3 py-1">
             {form.watch("invoiceNo")}
           </Badge>
@@ -380,7 +449,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="referenceNo"
+                    name="detailsSchema.referenceNo"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Reference No</FormLabel>
@@ -394,7 +463,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="referenceDate"
+                    name="detailsSchema.referenceDate"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Reference Date</FormLabel>
@@ -437,6 +506,19 @@ export default function CreateInvoice() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="detailsSchema.otherReferences"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-3">
+                        <FormLabel>References</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="References" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
 
@@ -447,7 +529,7 @@ export default function CreateInvoice() {
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="purchaseNo"
+                    name="detailsSchema.purchaseNo"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Purchase Order No</FormLabel>
@@ -461,7 +543,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="purchaseDate"
+                    name="detailsSchema.purchaseDate"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Purchase Date</FormLabel>
@@ -481,7 +563,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="termsOfDelivery"
+                    name="detailsSchema.termsOfDelivery"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
                         <FormLabel>Terms of Delivery</FormLabel>
@@ -552,12 +634,33 @@ export default function CreateInvoice() {
 
               <Card>
                 <CardHeader>
+                  <CardTitle>Recieved Data From</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="dataFrom"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data From</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="Data description" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle>Dispatch Details</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="dispatchDetails.dispatchNo"
+                    name="detailsSchema.dispatchDetails.dispatchNo"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Dispatch Number</FormLabel>
@@ -571,7 +674,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="dispatchDetails.date"
+                    name="detailsSchema.dispatchDetails.date"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Dispatch Date</FormLabel>
@@ -591,7 +694,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="dispatchDetails.through"
+                    name="detailsSchema.dispatchDetails.through"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Dispatch Through</FormLabel>
@@ -605,7 +708,7 @@ export default function CreateInvoice() {
 
                   <FormField
                     control={form.control}
-                    name="dispatchDetails.destination"
+                    name="detailsSchema.dispatchDetails.destination"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Destination</FormLabel>
@@ -646,6 +749,25 @@ export default function CreateInvoice() {
                     </Button>
                   </CardTitle>
                 </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="note"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Additional notes or comments"
+                            defaultValue="TDS Not applicable on postal reimbursement charges"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
                 <CardContent>
                   <div className="space-y-2">
                     {/* Header Row */}
@@ -1160,102 +1282,192 @@ export default function CreateInvoice() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span>Subtotal (Before GST):</span>
-                        <span className="font-medium">
-                          ₹{calculatedTotals.totalBeforeGST.toFixed(2)}
-                        </span>
-                      </div>
-
+                      <FormField
+                        control={form.control}
+                        name="totalBeforeGST"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Subtotal (Before GST)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                disabled
+                                className="bg-muted"
+                                value={field.value?.toFixed(2)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                       {form.watch("gstDetails.type") !== "None" && (
                         <>
                           {form.watch("gstDetails.type") === "CGST" && (
                             <>
-                              <div className="flex justify-between text-sm">
-                                <span>
-                                  CGST ({form.watch("gstDetails.cgstRate")}%):
-                                </span>
-                                <span>
-                                  ₹{calculatedTotals.cgstAmount.toFixed(2)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span>
-                                  SGST ({form.watch("gstDetails.sgstRate")}%):
-                                </span>
-                                <span>
-                                  ₹{calculatedTotals.sgstAmount.toFixed(2)}
-                                </span>
-                              </div>
+                              <FormField
+                                control={form.control}
+                                name="gstDetails.cgst"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>
+                                      CGST ({form.watch("gstDetails.cgstRate")}
+                                      %):
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        disabled
+                                        className="bg-muted"
+                                        value={field.value?.toFixed(2)}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="gstDetails.sgst"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>
+                                      SGST ({form.watch("gstDetails.sgstRate")}
+                                      %):
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        disabled
+                                        className="bg-muted"
+                                        value={field.value?.toFixed(2)}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
                             </>
                           )}
 
                           {form.watch("gstDetails.type") === "IGST" && (
-                            <div className="flex justify-between text-sm">
-                              <span>
-                                IGST ({form.watch("gstDetails.igstRate")}%):
-                              </span>
-                              <span>
-                                ₹{calculatedTotals.igstAmount.toFixed(2)}
-                              </span>
-                            </div>
+                            <FormField
+                              control={form.control}
+                              name="gstDetails.igst"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    IGST ({form.watch("gstDetails.igstRate")}
+                                    %):
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      disabled
+                                      className="bg-muted"
+                                      value={field.value?.toFixed(2)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
                           )}
 
                           {calculatedTotals.fuelSurchargeAmount > 0 && (
-                            <div className="flex justify-between text-sm">
-                              <span>
-                                Fuel Surcharge (
-                                {form.watch("gstDetails.fuelSurchargeRate")}%):
-                              </span>
-                              <span>
-                                ₹
-                                {calculatedTotals.fuelSurchargeAmount.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
+                            <FormField
+                              control={form.control}
+                              name="gstDetails.fuelSurcharge"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Fuel Surcharge (
+                                    {form.watch("gstDetails.fuelSurchargeRate")}
+                                    %):
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      disabled
+                                      className="bg-muted"
+                                      value={field.value?.toFixed(2)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
                           )}
 
-                          <div className="flex justify-between font-medium">
-                            <span>Total GST + Surcharge:</span>
-                            <span>
-                              ₹
-                              {(
-                                calculatedTotals.totalGSTAmount +
-                                calculatedTotals.fuelSurchargeAmount
-                              ).toFixed(2)}
-                            </span>
-                          </div>
+                          <FormField
+                            control={form.control}
+                            name="gstDetails.totalGstAmount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Total GST + Surcharge:</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    disabled
+                                    className="bg-muted"
+                                    value={field.value?.toFixed(2)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
                         </>
                       )}
 
-                      <div className="flex justify-between">
-                        <span>Total Amount:</span>
-                        <span className="font-medium">
-                          ₹{calculatedTotals.totalAmount.toFixed(2)}
-                        </span>
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="gstDetails.totalAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Total Amount (with GST + Fuel)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                disabled
+                                className="bg-muted"
+                                value={field.value?.toFixed(2)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
 
-                      <div className="flex justify-between">
-                        <span>Rounding Off:</span>
-                        <span
-                          className={`font-medium ${
-                            calculatedTotals.roundingOff >= 0
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {calculatedTotals.roundingOff >= 0 ? "+" : ""}₹
-                          {calculatedTotals.roundingOff.toFixed(2)}
-                        </span>
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="roundingOff"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Rounding Off</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                disabled
+                                className="bg-muted"
+                                value={field.value?.toFixed(2)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
 
-                      <Separator />
-
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Gross Amount:</span>
-                        <span>₹{calculatedTotals.grossAmount.toFixed(2)}</span>
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="grossAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gross Amount (Rounded)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                disabled
+                                className="bg-muted"
+                                value={field.value?.toFixed(2)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
 
                       <FormField
                         control={form.control}
@@ -1421,23 +1633,6 @@ export default function CreateInvoice() {
                   <CardTitle>Additional Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="note"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Additional notes or comments"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <FormField
                     control={form.control}
                     name="declaration"

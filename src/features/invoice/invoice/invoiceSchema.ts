@@ -5,20 +5,21 @@ export const invoiceSchema = z.object({
   date: z.date(),
   financialYear: z.string().optional(),
 
-  // Reference & Delivery
-  referenceNo: z.string().optional(),
-  referenceDate: z.date().optional(),
-  otherReferences: z.string().optional(),
-  purchaseNo: z.string().optional(),
-  purchaseDate: z.date().optional(),
-  termsOfDelivery: z.string().optional(),
-
-  // Dispatch
-  dispatchDetails: z.object({
-    dispatchNo: z.string().optional(),
-    date: z.date().optional(),
-    through: z.string().optional(),
-    destination: z.string().optional(),
+  detailsSchema: z.object({
+    // Reference & Delivery
+    referenceNo: z.string().optional(),
+    referenceDate: z.date().optional(),
+    otherReferences: z.string().optional(),
+    purchaseNo: z.string().optional(),
+    purchaseDate: z.date().optional(),
+    termsOfDelivery: z.string().optional(),
+    // Dispatch
+    dispatchDetails: z.object({
+      dispatchNo: z.string().optional(),
+      date: z.date().optional(),
+      through: z.string().optional(),
+      destination: z.string().optional(),
+    }),
   }),
 
   // HR
@@ -29,11 +30,14 @@ export const invoiceSchema = z.object({
     hrName: z.string().optional(),
   }),
 
+  // Recieved Data from
+  dataFrom: z.string().optional(),
+
   // Relations
-  company: z.string().optional(), // attached before POST
+  company: z.string(),
   client: z.string(),
-  consignee: z.string().optional(),
-  createdBy: z.string().optional(),
+  consignee: z.string(),
+  createdBy: z.string(),
 
   // Items
   items: z.array(
@@ -63,6 +67,7 @@ export const invoiceSchema = z.object({
     igst: z.coerce.number().optional(),
     fuelSurchargeRate: z.coerce.number().optional(),
     fuelSurcharge: z.coerce.number().optional(),
+    totalGstAmount: z.coerce.number().optional(),
     totalAmount: z.coerce.number().optional(),
   }),
 
