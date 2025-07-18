@@ -105,7 +105,7 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
           <Note note={invoice.note} />
         </View>
         <View style={styles.section3}>
-          <AmountDetails invoice={invoice} />
+          <AmountDetails invoice={invoice} company={company} />
         </View>
         {/* <View style={styles.header}>
         <Text style={styles.companyName}>

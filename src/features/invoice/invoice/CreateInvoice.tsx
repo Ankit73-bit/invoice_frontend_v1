@@ -36,14 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 import type * as z from "zod";
 import { invoiceSchema } from "./invoiceSchema";
@@ -54,8 +46,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useCompanyContext } from "@/store/companyContextStore";
 import { api } from "@/lib/api";
 import { InvoicePreviewDialog } from "@/features/components/InvoicePreviewDialog";
-import { InvoiceTemplates } from "@/features/components/invoiceTemplates";
-import { Separator } from "@radix-ui/react-select";
+
 import { ConsigneeSelect } from "./ConsigneeSelect";
 import { ClientSelect } from "./ClientSelect";
 import { ConvertToWords } from "@/features/utils/ConvertToWords";

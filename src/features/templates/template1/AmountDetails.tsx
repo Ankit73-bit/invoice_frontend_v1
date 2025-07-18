@@ -1,17 +1,8 @@
 import { StyleSheet, View } from "@react-pdf/renderer";
-import AmountCalculations from "./AmountCalculations";
 import BankDetailsAndAMT from "./BankDetailsAndAMT";
+import AmountCalculations from "./AmountCalculations";
 
-function AmountDetails({
-  bankDetails,
-  gstDetails,
-  roundingOff,
-  grossAmount,
-  amountInWords,
-  totalBeforeGST,
-  selectedClient,
-  items,
-}) {
+function AmountDetails({ invoice, company }) {
   const amountStyles = StyleSheet.create({
     container: {
       display: "flex",
@@ -21,16 +12,14 @@ function AmountDetails({
   return (
     <View style={amountStyles.container}>
       <BankDetailsAndAMT
-        amountInWords={amountInWords}
-        bankDetails={bankDetails}
+        amountInWords={invoice.inWords}
+        bankDetails={company.companyBankDetails}
       />
       <AmountCalculations
-        gstDetails={gstDetails}
-        roundingOff={roundingOff}
-        grossAmount={grossAmount}
-        totalBeforeGST={totalBeforeGST}
-        selectedClient={selectedClient}
-        items={items}
+        gstDetails={invoice.gstDetails}
+        roundingOff={invoice.roundingOff}
+        grossAmount={invoice.grossAmount}
+        totalBeforeGST={invoice.totalBeforeGST}
       />
     </View>
   );
