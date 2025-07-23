@@ -1,0 +1,38 @@
+import { StyleSheet, View } from "@react-pdf/renderer";
+import InvoiceNoDetails from "./InvoiceNoDetails";
+import ReferenceDetails from "./ReferenceDetails";
+import PurchaseDetails from "./PurchaseDetails";
+import DispatchDetails from "./DispatchDetails";
+
+const invoiceDetails = StyleSheet.create({
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    flexWrap: "wrap",
+    width: "50%",
+  },
+});
+
+function InvoiceDetails({ invoice }) {
+  return (
+    <View style={invoiceDetails.container}>
+      <InvoiceNoDetails
+        invoiceNo={invoice.invoiceNo}
+        invoiceDate={invoice.date}
+      />
+      <ReferenceDetails
+        referenceNo={invoice.detailsSchema.referenceNo}
+        referenceDate={invoice.detailsSchema.referenceDate}
+      />
+      <PurchaseDetails
+        purchaseNo={invoice.detailsSchema.purchaseNo}
+        purchaseDate={invoice.detailsSchema.purchaseDate}
+      />
+      <DispatchDetails
+        dispatchDetails={invoice?.detailsSchema.dispatchDetails}
+      />
+    </View>
+  );
+}
+
+export default InvoiceDetails;

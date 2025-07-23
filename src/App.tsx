@@ -8,7 +8,7 @@ import LayoutPage from "./pages/LayoutPage";
 import Invoices from "./features/invoice/invoice/Invoices";
 import ClientPage from "./features/invoice/client/ClientPage";
 import ConsigneePage from "./features/invoice/consignee/ConsigneePage";
-import CreateInvoice from "./features/invoice/invoice/CreateInvoice";
+import CreateInvoiceRouter from "./features/invoice/invoice/CreateInvoiceRouter";
 
 function App() {
   return (
@@ -38,7 +38,7 @@ function App() {
               }
             />
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="invoice/new" element={<CreateInvoice />} />
+            <Route path="invoice/new" element={<CreateInvoiceRouter />} />
             <Route path="invoices" element={<Invoices />} />
             <Route
               path="clients"

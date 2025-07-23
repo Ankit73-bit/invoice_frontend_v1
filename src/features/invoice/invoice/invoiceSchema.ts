@@ -35,20 +35,22 @@ export const invoiceSchema = z.object({
 
   // Relations
   company: z.string(),
-  client: z.string(),
-  consignee: z.string(),
+  client: z.string().min(1, "Client is required"),
+  consignee: z.string().min(1, "Consignee is required"),
   createdBy: z.string(),
 
   // Items
-  items: z.array(
-    z.object({
-      description: z.string(),
-      hsnCode: z.string().optional(),
-      quantity: z.coerce.number().min(1),
-      unitPrice: z.string(),
-      total: z.string().optional(),
-    })
-  ),
+  items: z
+    .array(
+      z.object({
+        description: z.string().min(1, "Description is required"),
+        hsnCode: z.string().min(1, "HSN Code is required"),
+        quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+        unitPrice: z.union([z.string(), z.number()]),
+        total: z.union([z.string(), z.number()]),
+      })
+    )
+    .min(1, "At least one item is required"),
 
   // Totals
   totalBeforeGST: z.coerce.number().optional(),
@@ -73,6 +75,6 @@ export const invoiceSchema = z.object({
 
   // Misc
   note: z.string().optional(),
-  declaration: z.string().optional(),
+  declaration: z.string().min(1, "Declaration is required"),
   status: z.enum(["Pending", "Paid", "Overdue"]).default("Pending"),
 });
