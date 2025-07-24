@@ -29,6 +29,7 @@ import { InvoiceAdditional } from "../formComponents/InvoiceAdditional";
 import { toast } from "react-toastify";
 import { downloadInvoicePDF } from "@/lib/utils";
 import { InvoicePDFPS } from "@/features/templates/templateps/InvoicePDFPS";
+import { useInvoiceAPI } from "./apiIntegration";
 
 export type FormValues = z.infer<typeof invoiceSchema>;
 
@@ -42,6 +43,7 @@ export default function CreateInvoicePS() {
   const { companies } = useCompanies();
   const { user } = useAuthStore();
   const { selectedCompanyId } = useCompanyContext();
+  const { createInvoice, getNextInvoiceNumber } = useInvoiceAPI();
 
   const companyObj = companies.find((c) => {
     if (user?.role === "admin") {
@@ -271,7 +273,7 @@ export default function CreateInvoicePS() {
         };
       });
 
-      await api.post("/invoices", {
+      await createInvoice({
         ...values,
         company: selectedCompanyId,
         items: cleanedItems,
@@ -280,14 +282,12 @@ export default function CreateInvoicePS() {
 
       toast.success("Invoice created successfully!");
 
-      // ✅ Fetch new invoice number for the next form
-      const res = await api.get(
-        `/invoices/next-invoice-number?companyId=${selectedCompanyId}`
-      );
+      // ✅ 1. Get the next invoice number first
+      const invoiceNo = await getNextInvoiceNumber(selectedCompanyId);
 
       // ✅ Reset form with updated invoiceNo and defaults
       form.reset({
-        invoiceNo: res.data.invoiceNumber,
+        invoiceNo,
         date: new Date(),
         financialYear: values.financialYear,
         status: "Pending",

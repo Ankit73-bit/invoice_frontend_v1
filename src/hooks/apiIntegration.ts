@@ -1,15 +1,10 @@
 import { api } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
-import { useCompanyContext } from "@/store/companyContextStore";
 import { useState } from "react";
 
-// API integration example - replace with your actual API endpoints
-
+// API integration hook that matches your existing structure
 export const useInvoiceAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const user = useAuthStore((state) => state.user);
-  const { selectedCompanyId } = useCompanyContext();
 
   /* ---------- Helpers ---------- */
   const start = () => {
@@ -25,24 +20,25 @@ export const useInvoiceAPI = () => {
     search?: string;
     status?: string;
     client?: string;
+    company?: string;
     dateFrom?: string;
     dateTo?: string;
     amountMin?: number;
     amountMax?: number;
   }) => {
+    start();
     try {
-      const endpoint = user?.role === "admin" ? "/invoices/admin" : "/invoices";
+      // Use admin endpoint if user is admin, otherwise regular endpoint
+      const endpoint = "/invoices";
 
       const { data } = await api.get(endpoint, {
         params: {
           ...params,
-          ...(user?.role === "admin" &&
-            selectedCompanyId && { company: selectedCompanyId }),
         },
       });
 
       console.log("API response:", data); // Debug log
-      return data.data;
+      return data.data || data;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
       throw err;
@@ -167,72 +163,3 @@ export const useInvoiceAPI = () => {
     getNextInvoiceNumber,
   };
 };
-
-// Example API route handler (Next.js App Router)
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const page = Number.parseInt(searchParams.get("page") || "1");
-  const limit = Number.parseInt(searchParams.get("limit") || "10");
-  const search = searchParams.get("search");
-  const status = searchParams.get("status");
-  const client = searchParams.get("client");
-  const dateFrom = searchParams.get("dateFrom");
-  const dateTo = searchParams.get("dateTo");
-  const amountMin = searchParams.get("amountMin");
-  const amountMax = searchParams.get("amountMax");
-
-  try {
-    // Build your database query based on the parameters
-    const query: any = {};
-
-    if (search) {
-      query.$or = [
-        { invoiceNo: { $regex: search, $options: "i" } },
-        { "client.clientCompanyName": { $regex: search, $options: "i" } },
-      ];
-    }
-
-    if (status) query.status = status;
-    if (client) query.client = client;
-
-    if (dateFrom || dateTo) {
-      query.date = {};
-      if (dateFrom) query.date.$gte = new Date(dateFrom);
-      if (dateTo) query.date.$lte = new Date(dateTo);
-    }
-
-    if (amountMin || amountMax) {
-      query.grossAmount = {};
-      if (amountMin) query.grossAmount.$gte = Number.parseFloat(amountMin);
-      if (amountMax) query.grossAmount.$lte = Number.parseFloat(amountMax);
-    }
-
-    // Execute your database query here
-    // const invoices = await Invoice.find(query)
-    //   .populate('client')
-    //   .populate('consignee')
-    //   .skip((page - 1) * limit)
-    //   .limit(limit)
-    //   .sort({ createdAt: -1 })
-
-    // const total = await Invoice.countDocuments(query)
-
-    return Response.json({
-      status: "success",
-      data: {
-        invoices: [], // Your actual invoice data
-        pagination: {
-          page,
-          limit,
-          total: 0, // Your actual total count
-          pages: 0, // Math.ceil(total / limit)
-        },
-      },
-    });
-  } catch (error) {
-    return Response.json(
-      { status: "error", message: "Failed to fetch invoices" },
-      { status: 500 }
-    );
-  }
-}

@@ -1,9 +1,19 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export const useCompanyContext = create<{
+type CompanyContext = {
   selectedCompanyId: string | null;
   setSelectedCompanyId: (id: string) => void;
-}>((set) => ({
-  selectedCompanyId: null,
-  setSelectedCompanyId: (id) => set({ selectedCompanyId: id }),
-}));
+};
+
+export const useCompanyContext = create<CompanyContext>()(
+  persist(
+    (set) => ({
+      selectedCompanyId: null,
+      setSelectedCompanyId: (id) => set({ selectedCompanyId: id }),
+    }),
+    {
+      name: "company-context", // key in localStorage
+    }
+  )
+);
