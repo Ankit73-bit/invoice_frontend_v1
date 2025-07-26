@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCompanies } from "@/hooks/useCompanies";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useCompanyContext } from "@/store/companyContextStore";
 
 const data = {
@@ -47,14 +47,9 @@ const data = {
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Invoice Dashboard",
+      url: "/invoices/dashboard",
       icon: IconDashboard,
-    },
-    {
-      title: "Invoices",
-      url: "/invoices",
-      icon: IconLayersSubtract,
     },
     {
       title: "Clients",

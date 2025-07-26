@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
 import { Slide, ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./hooks/theme-provider";
 import ProtectedRoute from "./features/authentication/ProtectedRoute";
@@ -33,13 +32,13 @@ function App() {
             <Route
               element={
                 <ProtectedRoute>
-                  <Navigate replace to="dashboard" />
+                  <Navigate replace to="invoices/dashboard" />
                 </ProtectedRoute>
               }
             />
-            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="invoices/dashboard" element={<Invoices />} />
             <Route path="invoice/new" element={<CreateInvoiceRouter />} />
-            <Route path="invoices" element={<Invoices />} />
+            <Route path="invoice/edit/:id" element={<CreateInvoiceRouter />} />
             <Route
               path="clients"
               element={

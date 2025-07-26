@@ -29,7 +29,8 @@ import { InvoiceAdditional } from "../formComponents/InvoiceAdditional";
 import { toast } from "react-toastify";
 import { downloadInvoicePDF } from "@/lib/utils";
 import { InvoicePDFPS } from "@/features/templates/templateps/InvoicePDFPS";
-import { useInvoiceAPI } from "./apiIntegration";
+import { useNavigate, useParams } from "react-router-dom";
+import { useInvoiceAPI } from "@/hooks/apiIntegration";
 
 export type FormValues = z.infer<typeof invoiceSchema>;
 
@@ -43,7 +44,11 @@ export default function CreateInvoicePS() {
   const { companies } = useCompanies();
   const { user } = useAuthStore();
   const { selectedCompanyId } = useCompanyContext();
-  const { createInvoice, getNextInvoiceNumber } = useInvoiceAPI();
+  const { createInvoice, updateInvoice, getNextInvoiceNumber } =
+    useInvoiceAPI();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = Boolean(id);
 
   const companyObj = companies.find((c) => {
     if (user?.role === "admin") {
@@ -261,6 +266,38 @@ export default function CreateInvoicePS() {
     }
   };
 
+  useEffect(() => {
+    const fetchInvoiceToEdit = async () => {
+      if (!id) return;
+      try {
+        const res = await api.get(`/invoices/${id}`);
+        const invoiceData = res.data.data;
+        console.log(invoiceData);
+
+        form.reset({
+          ...invoiceData,
+          client: invoiceData.client?._id ?? "",
+          consignee: invoiceData.consignee?._id ?? "",
+          date: new Date(invoiceData.date),
+          company: invoiceData.company?._id ?? selectedCompanyId,
+          items: invoiceData.items.map((item: any) => ({
+            ...item,
+            hsnCode: item.hsnCode ?? "",
+            unitPrice:
+              item.unitPrice === "-" ? "-" : item.unitPrice?.toString() || "0",
+            quantity: Number(item.quantity),
+            total: item.total?.toString() || "0",
+          })),
+        });
+      } catch (error) {
+        console.error("Failed to fetch invoice for editing", error);
+        toast.error("Failed to load invoice");
+      }
+    };
+
+    fetchInvoiceToEdit();
+  }, [id]);
+
   const onSubmit = async (values: FormValues) => {
     try {
       const cleanedItems = values.items.map((item) => {
@@ -273,19 +310,25 @@ export default function CreateInvoicePS() {
         };
       });
 
-      await createInvoice({
+      const payload = {
         ...values,
         company: selectedCompanyId,
         items: cleanedItems,
         createdBy: user,
-      });
+      };
 
-      toast.success("Invoice created successfully!");
+      if (isEditing && id) {
+        await updateInvoice(id, payload); // ✅ USE YOUR API FUNCTION HERE
+        toast.success("Invoice updated successfully!");
+        navigate("/invoices");
+      } else {
+        await createInvoice(payload); // ✅ Only create if not editing
+        toast.success("Invoice created successfully!");
+      }
 
-      // ✅ 1. Get the next invoice number first
+      // Refresh form and download
       const invoiceNo = await getNextInvoiceNumber(selectedCompanyId);
 
-      // ✅ Reset form with updated invoiceNo and defaults
       form.reset({
         invoiceNo,
         date: new Date(),
@@ -337,8 +380,8 @@ export default function CreateInvoicePS() {
         `${values.invoiceNo}.pdf`
       );
     } catch (error) {
-      console.error("Failed to create invoice:", error);
-      toast.error("Failed to create invoice");
+      console.error("Failed to submit invoice:", error);
+      toast.error("Failed to submit invoice");
     }
   };
 
@@ -374,7 +417,10 @@ export default function CreateInvoicePS() {
       </AccordionSection>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Create Invoice</h1>
+          <h1 className="text-3xl font-bold">
+            {isEditing ? "Edit Invoice" : "Create Invoice"}
+          </h1>
+
           <p className="text-muted-foreground">
             Generate a new invoice for your client
           </p>
@@ -476,7 +522,7 @@ export default function CreateInvoicePS() {
                 Reset Form
               </Button>
               <Button type="submit" className="min-w-[120px]">
-                Create Invoice
+                {isEditing ? "Update Invoice" : "Create Invoice"}
               </Button>
             </div>
           </div>

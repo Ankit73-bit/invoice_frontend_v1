@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Search,
@@ -74,6 +74,14 @@ import { useInvoiceAnalytics } from "@/hooks/useInvoiceAnalytics";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
 import { useCompanyContext } from "@/store/companyContextStore";
+import { ConfirmDeleteDialog } from "@/features/components/ConfirmDeleteDialog";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useClientStore } from "@/store/clientStore";
+import { useInvoiceAPI } from "@/hooks/apiIntegration";
+import { useNavigate } from "react-router-dom";
+import { InvoicePreviewDialog } from "@/features/components/InvoicePreviewDialog";
+import { downloadPdfMap } from "./downloadPdfMap";
+import { downloadInvoicePDF } from "@/lib/utils";
 
 // Types based on your backend data structure
 interface Invoice {
@@ -128,213 +136,6 @@ interface InvoiceFilters {
   dueStatus?: string;
 }
 
-// Mock API hook - replace with your actual implementation
-const useInvoiceAPI = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchInvoices = async (params: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock data that matches your backend structure
-      const mockInvoices: Invoice[] = [
-        {
-          _id: "1",
-          invoiceNo: "INV/2024-25/001",
-          date: "2024-01-15",
-          financialYear: "2024-25",
-          client: {
-            _id: "c1",
-            clientCompanyName: "ABC Corporation Ltd.",
-          },
-          consignee: {
-            _id: "c2",
-            clientCompanyName: "ABC Corp Warehouse",
-          },
-          company: {
-            _id: "comp1",
-            companyName: "Your Company Ltd.",
-          },
-          grossAmount: 25000,
-          totalBeforeGST: 21186.44,
-          status: "Paid",
-          createdAt: "2024-01-15T10:30:00Z",
-          dueDate: "2024-02-15",
-          items: [
-            {
-              description: "Web Development Services",
-              quantity: 1,
-              unitPrice: 20000,
-              total: 20000,
-            },
-            {
-              description: "Hosting Setup",
-              quantity: 1,
-              unitPrice: 1186.44,
-              total: 1186.44,
-            },
-          ],
-          gstDetails: {
-            cgst: 1909.32,
-            sgst: 1909.32,
-            totalGST: 3818.64,
-          },
-          inWords: "Twenty Five Thousand Only",
-        },
-        {
-          _id: "2",
-          invoiceNo: "INV/2024-25/002",
-          date: "2024-01-20",
-          financialYear: "2024-25",
-          client: {
-            _id: "c2",
-            clientCompanyName: "XYZ Industries Pvt. Ltd.",
-          },
-          company: {
-            _id: "comp1",
-            companyName: "Your Company Ltd.",
-          },
-          grossAmount: 15000,
-          totalBeforeGST: 12711.86,
-          status: "Pending",
-          createdAt: "2024-01-20T14:15:00Z",
-          dueDate: "2024-02-20",
-          items: [
-            {
-              description: "Mobile App Development",
-              quantity: 1,
-              unitPrice: 12711.86,
-              total: 12711.86,
-            },
-          ],
-          gstDetails: {
-            cgst: 1144.07,
-            sgst: 1144.07,
-            totalGST: 2288.14,
-          },
-          inWords: "Fifteen Thousand Only",
-        },
-        {
-          _id: "3",
-          invoiceNo: "INV/2024-25/003",
-          date: "2024-01-10",
-          financialYear: "2024-25",
-          client: {
-            _id: "c3",
-            clientCompanyName: "Tech Solutions Inc.",
-          },
-          company: {
-            _id: "comp1",
-            companyName: "Your Company Ltd.",
-          },
-          grossAmount: 35000,
-          totalBeforeGST: 29661.02,
-          status: "Overdue",
-          createdAt: "2024-01-10T09:00:00Z",
-          dueDate: "2024-01-25",
-          items: [
-            {
-              description: "E-commerce Platform Development",
-              quantity: 1,
-              unitPrice: 29661.02,
-              total: 29661.02,
-            },
-          ],
-          gstDetails: {
-            cgst: 2669.49,
-            sgst: 2669.49,
-            totalGST: 5338.98,
-          },
-          inWords: "Thirty Five Thousand Only",
-        },
-      ];
-
-      return {
-        data: {
-          invoices: mockInvoices,
-          pagination: {
-            page: 1,
-            limit: 10,
-            total: mockInvoices.length,
-            pages: 1,
-          },
-        },
-      };
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteInvoice = async (id: string) => {
-    setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateInvoiceStatus = async (id: string, status: string) => {
-    setLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      return { success: true };
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const downloadInvoicePDF = async (id: string) => {
-    try {
-      // Simulate PDF download
-      const link = document.createElement("a");
-      link.href = `/placeholder.svg?height=800&width=600&text=Invoice PDF`;
-      link.download = `invoice-${id}.pdf`;
-      link.click();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to download");
-      throw err;
-    }
-  };
-
-  return {
-    loading,
-    error,
-    fetchInvoices,
-    deleteInvoice,
-    updateInvoiceStatus,
-    downloadInvoicePDF,
-  };
-};
-
-// Mock clients data
-const mockClients = [
-  { _id: "c1", clientCompanyName: "ABC Corporation Ltd." },
-  { _id: "c2", clientCompanyName: "XYZ Industries Pvt. Ltd." },
-  { _id: "c3", clientCompanyName: "Tech Solutions Inc." },
-  { _id: "c4", clientCompanyName: "Digital Marketing Pro" },
-  { _id: "c5", clientCompanyName: "Global Enterprises" },
-];
-
-const mockCompanies = [
-  { _id: "comp1", companyName: "Your Company Ltd." },
-  { _id: "comp2", companyName: "Sister Company Pvt. Ltd." },
-];
-
 export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -355,21 +156,18 @@ export default function Invoices() {
   );
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const { user } = useAuthStore((state) => state.user);
+  const user = useAuthStore((state) => state.user);
   const { selectedCompanyId } = useCompanyContext();
+  const { companies } = useCompanies();
+  const { clients } = useClientStore();
+  const navigate = useNavigate();
 
-  const {
-    fetchInvoices,
-    deleteInvoice,
-    updateInvoiceStatus,
-    downloadInvoicePDF,
-    loading,
-    error,
-  } = useInvoiceAPI();
+  const { fetchInvoices, deleteInvoice, updateInvoiceStatus, loading, error } =
+    useInvoiceAPI();
 
   // Use analytics hook for dashboard stats
   const { summary, loading: analyticsLoading } = useInvoiceAnalytics(
-    user.role === "admin" ? selectedCompanyId : undefined
+    user?.role === "admin" ? selectedCompanyId : ""
   );
 
   useEffect(() => {
@@ -382,14 +180,14 @@ export default function Invoices() {
           status: filters.status !== "All Status" ? filters.status : undefined,
           client: filters.client !== "All Clients" ? filters.client : undefined,
           company:
-            filters.company !== "All Companies" ? filters.company : undefined,
+            user?.role !== "admin" && filters.company !== "All Companies"
+              ? filters.company
+              : undefined,
           dateFrom: filters.dateRange?.from?.toISOString(),
           dateTo: filters.dateRange?.to?.toISOString(),
           amountMin: filters.amountRange?.min,
           amountMax: filters.amountRange?.max,
-          companyId: user.role === "admin" ? selectedCompanyId : undefined,
         });
-
         setInvoices(data?.data?.invoices || []);
       } catch (err) {
         console.error("Fetch error", err);
@@ -404,8 +202,10 @@ export default function Invoices() {
     currentPage,
     pageSize,
     selectedCompanyId,
-    user.role,
+    user?.role,
   ]);
+
+  console.log(invoices);
 
   // Filter and search logic
   const filteredInvoices = useMemo(() => {
@@ -419,7 +219,7 @@ export default function Invoices() {
           invoice.client.clientCompanyName
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          (user.role === "admin" &&
+          (user?.role === "admin" &&
             invoice.company.companyName
               .toLowerCase()
               .includes(searchQuery.toLowerCase()))
@@ -438,7 +238,7 @@ export default function Invoices() {
     }
 
     if (
-      user.role === "admin" &&
+      user?.role === "admin" &&
       filters.company &&
       filters.company !== "All Companies"
     ) {
@@ -512,7 +312,7 @@ export default function Invoices() {
     }
 
     return result;
-  }, [invoices, searchQuery, filters, user.role]);
+  }, [invoices, searchQuery, filters, user?.role]);
 
   // Pagination
   const totalPages = Math.ceil(filteredInvoices.length / pageSize);
@@ -568,8 +368,7 @@ export default function Invoices() {
   };
 
   const handleEdit = (invoice: Invoice) => {
-    console.log("Edit invoice:", invoice);
-    toast.info("Edit functionality to be implemented");
+    navigate(`/invoice/edit/${invoice._id}`);
   };
 
   const handleDeleteClick = (invoiceId: string) => {
@@ -597,6 +396,7 @@ export default function Invoices() {
     }
   };
 
+  console.log(clients);
   const handleCopy = (invoice: Invoice) => {
     console.log("Copy invoice:", invoice);
     toast.info("Copy functionality to be implemented");
@@ -604,9 +404,20 @@ export default function Invoices() {
 
   const handleDownload = async (invoice: Invoice) => {
     try {
-      await downloadInvoicePDF(invoice._id);
+      const Component =
+        downloadPdfMap[invoice.company._id] || downloadPdfMap["Default"];
+
+      const element = React.createElement(Component, {
+        invoice: { ...invoice, items: invoice.items },
+        company: invoice.company,
+        client: invoice.client,
+        consignee: invoice.consignee,
+      });
+
+      await downloadInvoicePDF(element, `${invoice.invoiceNo}.pdf`);
       toast.success("Invoice downloaded successfully");
     } catch (err) {
+      console.error("PDF Download Error:", err);
       toast.error("Failed to download invoice");
     }
   };
@@ -646,7 +457,7 @@ export default function Invoices() {
       "Invoice No": invoice.invoiceNo,
       Date: format(new Date(invoice.date), "dd/MM/yyyy"),
       Client: invoice.client.clientCompanyName,
-      ...(user.role === "admin" && { Company: invoice.company.companyName }),
+      ...(user?.role === "admin" && { Company: invoice.company.companyName }),
       "Amount Before GST": invoice.totalBeforeGST,
       "GST Amount": invoice.gstDetails?.totalGST || 0,
       "Gross Amount": invoice.grossAmount,
@@ -669,7 +480,7 @@ export default function Invoices() {
     a.click();
     window.URL.revokeObjectURL(url);
     toast.success("Invoice data exported successfully");
-  }, [filteredInvoices, user.role]);
+  }, [filteredInvoices, user?.role]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -728,28 +539,23 @@ export default function Invoices() {
     toast.info("Filters cleared");
   };
 
+  const createNewClick = () => {
+    navigate("/invoice/new");
+  };
+
   const hasActiveFilters = useMemo(() => {
     return (
       searchQuery ||
       filters.status !== "All Status" ||
       filters.client !== "All Clients" ||
-      (user.role === "admin" && filters.company !== "All Companies") ||
+      (user?.role === "admin" && filters.company !== "All Companies") ||
       filters.dueStatus !== "All Due Status" ||
       filters.dateRange?.from ||
       filters.dateRange?.to ||
       filters.amountRange?.min ||
       filters.amountRange?.max
     );
-  }, [searchQuery, filters, user.role]);
-
-  if (error) {
-    return (
-      <Alert className="m-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Error loading invoices: {error}</AlertDescription>
-      </Alert>
-    );
-  }
+  }, [searchQuery, filters, user?.role]);
 
   return (
     <div className="space-y-6 p-6">
@@ -855,14 +661,13 @@ export default function Invoices() {
           <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent" />
         </Card>
       </div>
-
       {/* Header and Actions */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
           <p className="text-muted-foreground">
             Manage your invoices and track payments
-            {user.role === "admin" && " across all companies"}
+            {user?.role === "admin" && " across all companies"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -874,13 +679,12 @@ export default function Invoices() {
             <FileDown className="h-4 w-4" />
             Export CSV
           </Button>
-          <Button className="gap-2">
+          <Button onClick={createNewClick} className="gap-2">
             <Plus className="h-4 w-4" />
             New Invoice
           </Button>
         </div>
       </div>
-
       {/* Search and Filters */}
       <Card>
         <CardContent className="p-6">
@@ -892,7 +696,7 @@ export default function Invoices() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder={`Search by invoice number, client${
-                      user.role === "admin" ? ", or company" : ""
+                      user?.role === "admin" ? ", or company" : ""
                     }...`}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -973,7 +777,7 @@ export default function Invoices() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="All Clients">All Clients</SelectItem>
-                        {mockClients.map((client) => (
+                        {clients.map((client) => (
                           <SelectItem key={client._id} value={client._id}>
                             {client.clientCompanyName}
                           </SelectItem>
@@ -983,7 +787,7 @@ export default function Invoices() {
                   </div>
 
                   {/* Company Filter (Admin only) */}
-                  {user.role === "admin" && (
+                  {user?.role === "admin" && (
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Company</Label>
                       <Select
@@ -999,7 +803,7 @@ export default function Invoices() {
                           <SelectItem value="All Companies">
                             All Companies
                           </SelectItem>
-                          {mockCompanies.map((company) => (
+                          {companies.map((company) => (
                             <SelectItem key={company._id} value={company._id}>
                               {company.companyName}
                             </SelectItem>
@@ -1179,7 +983,6 @@ export default function Invoices() {
           </div>
         </CardContent>
       </Card>
-
       {/* Bulk Actions */}
       {selectedInvoices.length > 0 && (
         <Card className="border-primary/50 bg-primary/5">
@@ -1227,7 +1030,6 @@ export default function Invoices() {
           </CardContent>
         </Card>
       )}
-
       {/* Invoice Table */}
       <Card>
         <CardContent className="p-0">
@@ -1247,7 +1049,7 @@ export default function Invoices() {
                   <TableHead className="font-semibold">Invoice No</TableHead>
                   <TableHead className="font-semibold">Date</TableHead>
                   <TableHead className="font-semibold">Client</TableHead>
-                  {user.role === "admin" && (
+                  {user?.role === "admin" && (
                     <TableHead className="font-semibold">Company</TableHead>
                   )}
                   <TableHead className="font-semibold">Amount</TableHead>
@@ -1273,7 +1075,7 @@ export default function Invoices() {
                       <TableCell>
                         <Skeleton className="h-4 w-32" />
                       </TableCell>
-                      {user.role === "admin" && (
+                      {user?.role === "admin" && (
                         <TableCell>
                           <Skeleton className="h-4 w-28" />
                         </TableCell>
@@ -1295,7 +1097,7 @@ export default function Invoices() {
                 ) : paginatedInvoices.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={user.role === "admin" ? 9 : 8}
+                      colSpan={user?.role === "admin" ? 9 : 8}
                       className="h-32 text-center"
                     >
                       <div className="flex flex-col items-center gap-2">
@@ -1343,7 +1145,7 @@ export default function Invoices() {
                           </span>
                         </div>
                       </TableCell>
-                      {user.role === "admin" && (
+                      {user?.role === "admin" && (
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -1471,7 +1273,6 @@ export default function Invoices() {
           </div>
         </CardContent>
       </Card>
-
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center space-x-2">
@@ -1537,230 +1338,15 @@ export default function Invoices() {
           </div>
         </div>
       </div>
-
       {/* View Invoice Modal */}
-      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Invoice Details
-            </DialogTitle>
-            <DialogDescription>
-              {selectedInvoice?.invoiceNo} -{" "}
-              {selectedInvoice?.client.clientCompanyName}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedInvoice && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Invoice Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Invoice No:</span>
-                      <span className="font-medium">
-                        {selectedInvoice.invoiceNo}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date:</span>
-                      <span>
-                        {format(new Date(selectedInvoice.date), "dd/MM/yyyy")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Financial Year:
-                      </span>
-                      <span>{selectedInvoice.financialYear}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Status:</span>
-                      {getStatusBadge(selectedInvoice.status)}
-                    </div>
-                    {selectedInvoice.dueDate && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Due Date:</span>
-                        <span>
-                          {format(
-                            new Date(selectedInvoice.dueDate),
-                            "dd/MM/yyyy"
-                          )}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Client Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Client:</span>
-                      <span className="font-medium text-right">
-                        {selectedInvoice.client.clientCompanyName}
-                      </span>
-                    </div>
-                    {selectedInvoice.consignee && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Consignee:
-                        </span>
-                        <span className="text-right">
-                          {selectedInvoice.consignee.clientCompanyName}
-                        </span>
-                      </div>
-                    )}
-                    {user.role === "admin" && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Company:</span>
-                        <span className="text-right">
-                          {selectedInvoice.company.companyName}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Invoice Items</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead className="text-right">Unit Price</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedInvoice.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item.description}</TableCell>
-                          <TableCell className="text-right">
-                            {item.quantity}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {typeof item.unitPrice === "string" &&
-                            item.unitPrice === "-"
-                              ? "-"
-                              : formatCurrency(Number(item.unitPrice))}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {formatCurrency(item.total)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Amount Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Amount Before GST:
-                      </span>
-                      <span className="font-medium">
-                        {formatCurrency(selectedInvoice.totalBeforeGST)}
-                      </span>
-                    </div>
-                    {selectedInvoice.gstDetails && (
-                      <>
-                        {selectedInvoice.gstDetails.cgst && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">CGST:</span>
-                            <span>
-                              {formatCurrency(selectedInvoice.gstDetails.cgst)}
-                            </span>
-                          </div>
-                        )}
-                        {selectedInvoice.gstDetails.sgst && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">SGST:</span>
-                            <span>
-                              {formatCurrency(selectedInvoice.gstDetails.sgst)}
-                            </span>
-                          </div>
-                        )}
-                        {selectedInvoice.gstDetails.igst && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">IGST:</span>
-                            <span>
-                              {formatCurrency(selectedInvoice.gstDetails.igst)}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Total GST:
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(
-                              selectedInvoice.gstDetails.totalGST
-                            )}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                    <Separator />
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Gross Amount:</span>
-                      <span>{formatCurrency(selectedInvoice.grossAmount)}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <strong>In Words:</strong> {selectedInvoice.inWords}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-between items-center pt-4 border-t">
-                <div className="text-sm text-muted-foreground">
-                  Created on{" "}
-                  {format(new Date(selectedInvoice.createdAt), "PPP")}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleDownload(selectedInvoice)}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                  </Button>
-                  <Button
-                    onClick={() => handleSend(selectedInvoice)}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    <Send className="h-4 w-4" />
-                    Send to Client
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
+      <InvoicePreviewDialog
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        invoice={selectedInvoice}
+        company={selectedInvoice?.company}
+        client={selectedInvoice?.client}
+        consignee={selectedInvoice?.consignee}
+      />
       {/* Delete Confirmation Modal */}
       <ConfirmDeleteDialog
         open={deleteDialogOpen}

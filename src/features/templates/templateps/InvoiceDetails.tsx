@@ -17,19 +17,19 @@ function InvoiceDetails({ invoice }) {
   return (
     <View style={invoiceDetails.container}>
       <InvoiceNoDetails
-        invoiceNo={invoice.invoiceNo}
-        invoiceDate={invoice.date}
+        invoiceNo={invoice?.invoiceNo}
+        invoiceDate={invoice?.date}
       />
       <ReferenceDetails
-        referenceNo={invoice.detailsSchema.referenceNo}
-        referenceDate={invoice.detailsSchema.referenceDate}
+        referenceNo={invoice?.detailsSchema?.referenceNo}
+        referenceDate={invoice?.detailsSchema?.referenceDate}
       />
       <PurchaseDetails
-        purchaseNo={invoice.detailsSchema.purchaseNo}
-        purchaseDate={invoice.detailsSchema.purchaseDate}
+        purchaseNo={invoice?.detailsSchema?.purchaseNo}
+        purchaseDate={invoice?.detailsSchema?.purchaseDate}
       />
       <DispatchDetails
-        dispatchDetails={invoice?.detailsSchema.dispatchDetails}
+        dispatchDetails={invoice?.detailsSchema?.dispatchDetails}
       />
     </View>
   );

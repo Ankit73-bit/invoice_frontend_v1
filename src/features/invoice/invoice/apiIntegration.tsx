@@ -84,9 +84,11 @@ export const useInvoiceAPI = () => {
     start();
     try {
       const { data } = await api.patch(`/invoices/${id}`, invoiceData);
+      console.log("📦 Updating invoice...", { id, invoiceData });
       return data.data.invoice;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update invoice");
+      console.log(err);
       throw err;
     } finally {
       finish();

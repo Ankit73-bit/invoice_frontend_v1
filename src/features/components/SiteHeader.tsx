@@ -9,9 +9,8 @@ export function SiteHeader() {
   const location = useLocation();
 
   const pathTitles: Record<string, string> = {
-    "/dashboard": "Dashboard",
+    "/invoices/dashboard": "Invoice Dashboard",
     "/invoice/new": "Create Invoice",
-    "/invoices": "Invoices",
     "/clients": "Clients",
     "/consignees": "Consignees",
     "/users": "User Management",

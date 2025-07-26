@@ -48,7 +48,7 @@ export const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
                     consignee={consignee}
                   />
                 }
-                fileName={`${invoice.invoiceNo}.pdf`}
+                fileName={`${invoice?.invoiceNo}.pdf`}
               >
                 {({ loading }) => (
                   <Button variant="outline" size="sm" disabled={loading}>

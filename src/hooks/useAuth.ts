@@ -20,7 +20,7 @@ export const useAuth = () => {
 
       setUser(res?.data?.user);
       toast.success("Login successful");
-      navigate("/dashboard");
+      navigate("/invoices/dashboard");
     } catch (error) {
       toast.error("Invalid credentials!");
       console.log(error);
@@ -46,7 +46,7 @@ export const useAuth = () => {
 
       setUser(res.data.user);
       toast.success("Registered successfully");
-      navigate("/dashboard");
+      navigate("/invoices/dashboard");
     } catch (error) {
       toast.error("Signup failed");
       console.error(error);
