@@ -8,8 +8,10 @@ import Invoices from "./features/invoice/invoice/Invoices";
 import ClientPage from "./features/invoice/client/ClientPage";
 import ConsigneePage from "./features/invoice/consignee/ConsigneePage";
 import CreateInvoiceRouter from "./features/invoice/invoice/CreateInvoiceRouter";
+import { useSoftReloadableRoute } from "./hooks/useSoftReloadableRoute";
 
 function App() {
+  const refreshKey = useSoftReloadableRoute();
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -36,14 +38,35 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="invoices/dashboard" element={<Invoices />} />
-            <Route path="invoice/new" element={<CreateInvoiceRouter />} />
-            <Route path="invoice/edit/:id" element={<CreateInvoiceRouter />} />
+            <Route
+              path="invoices/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Invoices key={refreshKey} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="invoice/new"
+              element={
+                <ProtectedRoute>
+                  <CreateInvoiceRouter key={refreshKey} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="invoice/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <CreateInvoiceRouter key={refreshKey} />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="clients"
               element={
                 <ProtectedRoute>
-                  <ClientPage />
+                  <ClientPage key={refreshKey} />
                 </ProtectedRoute>
               }
             />
@@ -51,7 +74,7 @@ function App() {
               path="consignees"
               element={
                 <ProtectedRoute>
-                  <ConsigneePage />
+                  <ConsigneePage key={refreshKey} />
                 </ProtectedRoute>
               }
             />

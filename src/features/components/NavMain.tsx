@@ -1,14 +1,53 @@
 import { IconCirclePlusFilled, type Icon } from "@tabler/icons-react";
-
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavLink } from "react-router-dom";
+import { NavLink, useMatch, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+
+interface NavItemProps {
+  item: {
+    title: string;
+    url: string;
+    icon?: Icon;
+    matchPattern?: string;
+  };
+}
+
+const NavItem = ({ item }: NavItemProps) => {
+  const navigate = useNavigate();
+  const matchPattern = item.matchPattern || item.url;
+  const isActive = useMatch({
+    path: matchPattern,
+    end: !matchPattern.includes("*"),
+  });
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isActive) {
+      e.preventDefault();
+      navigate(item.url, { replace: true });
+    }
+  };
+
+  return (
+    <NavLink
+      to={item.url}
+      onClick={handleClick}
+      className={cn(
+        "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          : "text-muted-foreground hover:bg-muted"
+      )}
+    >
+      {item.icon && <item.icon />}
+      <span>{item.title}</span>
+    </NavLink>
+  );
+};
 
 export function NavMain({
   items,
@@ -17,44 +56,43 @@ export function NavMain({
     title: string;
     url: string;
     icon?: Icon;
+    matchPattern?: string;
   }[];
 }) {
+  const navigate = useNavigate();
+  const isCreateInvoiceActive = useMatch("/invoice/new");
+
+  const handleCreateInvoiceClick = (e: React.MouseEvent) => {
+    if (isCreateInvoiceActive) {
+      e.preventDefault();
+      navigate("/invoice/new", { replace: true });
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton
-              tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-              asChild
+            <NavLink
+              to="/invoice/new"
+              onClick={handleCreateInvoiceClick}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isCreateInvoiceActive
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "text-muted-foreground hover:bg-muted"
+              )}
             >
-              <NavLink to="/invoice/new">
-                <IconCirclePlusFilled />
-                <span>Create Invoice</span>
-              </NavLink>
-            </SidebarMenuButton>
+              <IconCirclePlusFilled />
+              <span>Create Invoice</span>
+            </NavLink>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <NavLink
-                  to={item.url}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-muted text-primary"
-                        : "text-muted-foreground hover:bg-muted"
-                    )
-                  }
-                >
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </NavLink>
-              </SidebarMenuButton>
+              <NavItem item={item} />
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

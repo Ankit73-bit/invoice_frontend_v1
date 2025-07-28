@@ -68,7 +68,7 @@ export const InvoicePDFPP: React.FC<InvoicePDFProps> = ({
   client,
   consignee,
 }) => {
-  console.log(invoice);
+  console.log(invoice.hrDescription);
   const isPiramal = client?.clientCompanyName?.startsWith("PIRAMAL");
   return (
     <Document>

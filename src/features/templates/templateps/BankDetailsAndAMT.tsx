@@ -5,7 +5,7 @@ import Inwords from "./Inwords";
 function BankDetailsAndAMT({ bankDetails, amountInWords }) {
   const bankDetailsAndAMTStyle = StyleSheet.create({
     container: {
-      width: "50%",
+      width: "55%",
       borderRight: "1px solid black",
     },
   });

@@ -39,6 +39,7 @@ import { useCompanies } from "@/hooks/useCompanies";
 import { useEffect } from "react";
 import { useCompanyContext } from "@/store/companyContextStore";
 
+// Update the navMain data to include route patterns for active matching
 const data = {
   user: {
     name: "shadcn",
@@ -50,16 +51,19 @@ const data = {
       title: "Invoice Dashboard",
       url: "/invoices/dashboard",
       icon: IconDashboard,
+      matchPattern: "/invoices/dashboard/*", // Fixed pattern
     },
     {
       title: "Clients",
       url: "/clients",
       icon: IconListDetails,
+      matchPattern: "/clients/*", // Fixed pattern
     },
     {
       title: "Consignee",
       url: "/consignees",
       icon: IconChartBar,
+      matchPattern: "/consignees/*", // Fixed pattern
     },
   ],
   // navSecondary: [

@@ -90,8 +90,6 @@ export const InvoicePDFPS: React.FC<InvoicePDFProps> = ({
         )}
         <View style={styles.section2}>
           <DescriptionHead />
-
-          {/* {isPiramal && <HrDescription hrDescription={hrDescription} />} */}
           <Description items={invoice.items} />
           <Note note={invoice.note} />
         </View>

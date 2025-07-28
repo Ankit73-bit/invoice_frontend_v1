@@ -30,7 +30,7 @@ export function InvoiceHRDetails({ form }: Props) {
                 <FormItem>
                   <FormLabel>Year</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} placeholder="2024" />
+                    <Input {...field} placeholder="2024" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -54,13 +54,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -157,7 +150,7 @@ export default function Invoices() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const user = useAuthStore((state) => state.user);
-  const { selectedCompanyId } = useCompanyContext();
+  const { selectedCompanyId, setSelectedCompanyId } = useCompanyContext();
   const { companies } = useCompanies();
   const { clients } = useClientStore();
   const navigate = useNavigate();
@@ -179,8 +172,11 @@ export default function Invoices() {
           search: searchQuery,
           status: filters.status !== "All Status" ? filters.status : undefined,
           client: filters.client !== "All Clients" ? filters.client : undefined,
+          // Only pass company if it's specifically selected in filters
           company:
-            user?.role !== "admin" && filters.company !== "All Companies"
+            user?.role === "admin" &&
+            filters.company &&
+            filters.company !== "All Companies"
               ? filters.company
               : undefined,
           dateFrom: filters.dateRange?.from?.toISOString(),
@@ -201,9 +197,24 @@ export default function Invoices() {
     searchQuery,
     currentPage,
     pageSize,
-    selectedCompanyId,
+    selectedCompanyId, // Add this to dependencies
     user?.role,
   ]);
+
+  // Add a new useEffect to handle company changes from the sidebar
+  useEffect(() => {
+    if (user?.role === "admin" && selectedCompanyId) {
+      setFilters((prev) => ({
+        ...prev,
+        company: selectedCompanyId, // This will trigger the filter
+      }));
+    } else {
+      setFilters((prev) => ({
+        ...prev,
+        company: "All Companies", // Reset to all companies if not admin
+      }));
+    }
+  }, [selectedCompanyId, user?.role]);
 
   console.log(invoices);
 
@@ -237,14 +248,13 @@ export default function Invoices() {
       );
     }
 
-    if (
-      user?.role === "admin" &&
-      filters.company &&
-      filters.company !== "All Companies"
-    ) {
-      result = result.filter(
-        (invoice) => invoice.company._id === filters.company
-      );
+    // Modify company filter logic
+    if (user?.role === "admin") {
+      if (filters.company && filters.company !== "All Companies") {
+        result = result.filter(
+          (invoice) => invoice.company._id === filters.company
+        );
+      }
     }
 
     if (filters.dateRange?.from) {
@@ -396,7 +406,6 @@ export default function Invoices() {
     }
   };
 
-  console.log(clients);
   const handleCopy = (invoice: Invoice) => {
     console.log("Copy invoice:", invoice);
     toast.info("Copy functionality to be implemented");
@@ -532,7 +541,10 @@ export default function Invoices() {
     setFilters({
       status: "All Status",
       client: "All Clients",
-      company: "All Companies",
+      company:
+        user?.role === "admin"
+          ? selectedCompanyId || "All Companies"
+          : "All Companies",
       dueStatus: "All Due Status",
     });
     setSearchQuery("");
@@ -792,9 +804,13 @@ export default function Invoices() {
                       <Label className="text-sm font-medium">Company</Label>
                       <Select
                         value={filters.company}
-                        onValueChange={(value) =>
-                          setFilters((prev) => ({ ...prev, company: value }))
-                        }
+                        onValueChange={(value) => {
+                          setFilters((prev) => ({ ...prev, company: value }));
+                          // If selecting "All Companies", clear the selectedCompanyId
+                          if (value === "All Companies") {
+                            setSelectedCompanyId(null);
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue />

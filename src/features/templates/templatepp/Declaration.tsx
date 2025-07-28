@@ -9,7 +9,7 @@ const declarationStyle = StyleSheet.create({
     flexWrap: "wrap",
   },
   declaration: {
-    width: "50%",
+    width: "55%",
     borderRight: "1px solid black",
   },
   innerText: {

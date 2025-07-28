@@ -24,7 +24,7 @@ export const invoiceSchema = z.object({
 
   // HR
   hrDescription: z.object({
-    year: z.coerce.number().optional(),
+    year: z.string().optional(),
     month: z.string().optional(),
     hrCode: z.string().optional(),
     hrName: z.string().optional(),

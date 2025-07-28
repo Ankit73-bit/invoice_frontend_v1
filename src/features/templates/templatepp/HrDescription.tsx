@@ -36,18 +36,19 @@ function HrDescription({ hrDescription }) {
     },
   });
 
-  const { year, month, hrName, hrCode } = hrDescription;
+  console.log(hrDescription);
 
   return (
     <>
       <View style={hrDescriptionStyle.container}>
         <Text style={hrDescriptionStyle.description}>
           <Text>
-            Bill for the month of {month} - {year}
+            Bill for the month of{" "}
+            {`${hrDescription?.month || ""} - ${hrDescription?.year || ""}`}
           </Text>
           {"\n"}
           <Text>
-            {hrName} - {hrCode}
+            {`${hrDescription?.hrCode || ""} - ${hrDescription?.hrName || ""}`}
           </Text>
         </Text>
         <Text style={hrDescriptionStyle.hsncode}></Text>

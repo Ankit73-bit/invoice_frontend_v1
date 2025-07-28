@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useCompanyContext } from "@/store/companyContextStore";
 
 export function LoginForm({
   className,
@@ -22,6 +23,7 @@ export function LoginForm({
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setSelectedCompanyId: setGlobalCompanyId } = useCompanyContext();
 
   const { companies } = useCompanies();
   const { login, register } = useAuth();
@@ -66,7 +68,12 @@ export function LoginForm({
             </div>
             <div className="grid gap-3">
               <Label htmlFor="companyName">Company Name</Label>
-              <Select onValueChange={(value) => setSelectedCompanyId(value)}>
+              <Select
+                onValueChange={(value) => {
+                  setSelectedCompanyId(value);
+                  setGlobalCompanyId(value);
+                }}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a company" />
                 </SelectTrigger>
