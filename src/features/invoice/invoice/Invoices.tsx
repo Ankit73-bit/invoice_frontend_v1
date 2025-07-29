@@ -186,7 +186,6 @@ export default function Invoices() {
         });
         setInvoices(data?.data?.invoices || []);
       } catch (err) {
-        console.error("Fetch error", err);
         toast.error("Failed to fetch invoices");
       }
     };
@@ -215,8 +214,6 @@ export default function Invoices() {
       }));
     }
   }, [selectedCompanyId, user?.role]);
-
-  console.log(invoices);
 
   // Filter and search logic
   const filteredInvoices = useMemo(() => {
@@ -336,7 +333,7 @@ export default function Invoices() {
     if (summary) {
       return {
         total: { amount: summary.totalRevenue, count: summary.totalInvoices },
-        paid: { amount: 0, count: summary.paid }, // Backend doesn't provide amount breakdown
+        paid: { amount: 0, count: summary.paid },
         pending: { amount: 0, count: summary.pending },
         overdue: { amount: 0, count: summary.overdue },
       };
@@ -407,7 +404,6 @@ export default function Invoices() {
   };
 
   const handleCopy = (invoice: Invoice) => {
-    console.log("Copy invoice:", invoice);
     toast.info("Copy functionality to be implemented");
   };
 
@@ -426,13 +422,11 @@ export default function Invoices() {
       await downloadInvoicePDF(element, `${invoice.invoiceNo}.pdf`);
       toast.success("Invoice downloaded successfully");
     } catch (err) {
-      console.error("PDF Download Error:", err);
       toast.error("Failed to download invoice");
     }
   };
 
   const handleSend = (invoice: Invoice) => {
-    console.log("Send invoice:", invoice);
     toast.info("Send functionality to be implemented");
   };
 
@@ -457,7 +451,6 @@ export default function Invoices() {
   };
 
   const handleBulkAction = (action: string) => {
-    console.log("Bulk action:", action, selectedInvoices);
     toast.info(`Bulk ${action} functionality to be implemented`);
   };
 
@@ -573,10 +566,14 @@ export default function Invoices() {
     <div className="space-y-6 p-6">
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Total Revenue
+            </CardTitle>
+            <div className="p-2 bg-blue-500/10 rounded-lg backdrop-blur-sm">
+              <DollarSign className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
@@ -586,22 +583,26 @@ export default function Invoices() {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                   {formatCurrency(stats.total.amount)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70">
                   {stats.total.count} invoices
                 </p>
               </>
             )}
           </CardContent>
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
         </Card>
 
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+              Paid
+            </CardTitle>
+            <div className="p-2 bg-green-500/10 rounded-lg backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
@@ -611,22 +612,26 @@ export default function Invoices() {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-green-900 dark:text-green-100">
                   {formatCurrency(stats.paid.amount)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-green-600/70 dark:text-green-400/70">
                   {stats.paid.count} invoices
                 </p>
               </>
             )}
           </CardContent>
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-green-600" />
         </Card>
 
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/50 dark:to-yellow-900/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
+            <CardTitle className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+              Pending
+            </CardTitle>
+            <div className="p-2 bg-yellow-500/10 rounded-lg backdrop-blur-sm">
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </div>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
@@ -636,22 +641,26 @@ export default function Invoices() {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-yellow-600">
+                <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
                   {formatCurrency(stats.pending.amount)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-yellow-600/70 dark:text-yellow-400/70">
                   {stats.pending.count} invoices
                 </p>
               </>
             )}
           </CardContent>
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 to-yellow-600" />
         </Card>
 
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-600" />
+            <CardTitle className="text-sm font-medium text-red-700 dark:text-red-300">
+              Overdue
+            </CardTitle>
+            <div className="p-2 bg-red-500/10 rounded-lg backdrop-blur-sm">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            </div>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
@@ -661,16 +670,16 @@ export default function Invoices() {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="text-2xl font-bold text-red-900 dark:text-red-100">
                   {formatCurrency(stats.overdue.amount)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-red-600/70 dark:text-red-400/70">
                   {stats.overdue.count} invoices
                 </p>
               </>
             )}
           </CardContent>
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-red-600" />
         </Card>
       </div>
       {/* Header and Actions */}

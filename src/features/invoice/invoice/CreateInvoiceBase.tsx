@@ -1,5 +1,3 @@
-// src/features/invoice/CreateInvoiceBase.tsx
-
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
 import { FileText } from "lucide-react";

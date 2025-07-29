@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+"use client";
+
+import { useMemo, useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -11,6 +13,9 @@ import {
   Edit,
   X,
   MoreHorizontal,
+  Tag,
+  Grid3X3,
+  List,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +50,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // ✅ Custom hook & store
 import { useClientItems } from "@/hooks/useClientItems";
@@ -52,13 +68,6 @@ import { useClientItemStore } from "@/store/clientItemStore";
 import { api } from "@/lib/api";
 import { useCompanyContext } from "@/store/companyContextStore";
 import { toast } from "react-toastify";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSubContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ClientItemsManagerProps {
   clientId: string;
@@ -73,16 +82,18 @@ export default function ClientItems({
   onBulkSelect,
   selectedItems,
 }: ClientItemsManagerProps) {
-  const { items } = useClientItems(clientId); // fetch items
+  const { items } = useClientItems(clientId);
   const { selectedCompanyId } = useCompanyContext();
-
   const { addItem, updateItem, deleteItem } = useClientItemStore();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [viewMode, setViewMode] = useState<"table" | "cards" | "grouped">(
+    "table"
+  );
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -92,11 +103,34 @@ export default function ClientItems({
   const [bulkQuantities, setBulkQuantities] = useState<Record<string, number>>(
     {}
   );
+  const [categories, setCategories] = useState<string[]>([]);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set()
+  );
   const [newItem, setNewItem] = useState({
     description: "",
     unitPrice: "",
     hsnCode: "",
+    category: "",
   });
+
+  // Fetch categories when clientId changes
+  useEffect(() => {
+    if (clientId) {
+      fetchCategories();
+    }
+  }, [clientId]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get(
+        `client-items/client/${clientId}/categories`
+      );
+      setCategories(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
 
   const clientItems = items.filter((item) =>
     typeof item.clientId === "object"
@@ -107,14 +141,23 @@ export default function ClientItems({
   const filteredAndSortedItems = useMemo(() => {
     let filtered = clientItems;
 
+    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(
         (item) =>
           item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.hsnCode.toLowerCase().includes(searchQuery.toLowerCase())
+          item.hsnCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.category &&
+            item.category.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
+    // Filter by category
+    if (selectedCategory && selectedCategory !== "all") {
+      filtered = filtered.filter((item) => item.category === selectedCategory);
+    }
+
+    // Sort items
     filtered.sort((a, b) => {
       let aVal = a[sortConfig.key as keyof typeof a];
       let bVal = b[sortConfig.key as keyof typeof b];
@@ -130,7 +173,27 @@ export default function ClientItems({
     });
 
     return filtered;
-  }, [clientItems, searchQuery, sortConfig]);
+  }, [clientItems, searchQuery, selectedCategory, sortConfig]);
+
+  // Group items by category for grouped view
+  const groupedItems = useMemo(() => {
+    const groups = filteredAndSortedItems.reduce((acc, item) => {
+      const category = item.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    return Object.keys(groups)
+      .sort()
+      .map((category) => ({
+        category,
+        items: groups[category],
+        count: groups[category].length,
+      }));
+  }, [filteredAndSortedItems]);
 
   const handleAddItem = async () => {
     try {
@@ -139,14 +202,17 @@ export default function ClientItems({
         ...newItem,
         unitPrice: Number.parseFloat(newItem.unitPrice),
         company: selectedCompanyId,
+        category: newItem.category || "General",
       };
       const res = await api.post("client-items", itemToAdd);
       addItem(res.data.data);
       toast.success("Item created successfully!");
-      setNewItem({ description: "", unitPrice: "", hsnCode: "" });
+      setNewItem({ description: "", unitPrice: "", hsnCode: "", category: "" });
       setIsAddDialogOpen(false);
+      fetchCategories(); // Refresh categories
     } catch (error) {
       console.error("Failed to add item:", error);
+      toast.error("Failed to add item");
     }
   };
 
@@ -163,19 +229,23 @@ export default function ClientItems({
       toast.success("Item updated successfully!");
       updateItem(res.data.data);
       setEditingItem(null);
+      fetchCategories(); // Refresh categories
     } catch (error) {
       console.error("Failed to update item:", error);
+      toast.error("Failed to update item");
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
     try {
-      const res = await api.delete(`client-items/${itemId}`);
+      await api.delete(`client-items/${itemId}`);
       toast.success("Item deleted successfully!");
       deleteItem(itemId);
       setSelectedItemIds((prev) => prev.filter((id) => id !== itemId));
+      fetchCategories(); // Refresh categories
     } catch (error) {
       console.error("Failed to delete item:", error);
+      toast.error("Failed to delete item");
     }
   };
 
@@ -265,12 +335,13 @@ export default function ClientItems({
 
   const handleExportItems = () => {
     const csvContent = [
-      ["Description", "HSN Code", "Unit Price", "Last Used"],
+      ["Description", "Category", "HSN Code", "Unit Price", "Last Used"],
       ...filteredAndSortedItems.map((item) => [
         item.description,
+        item.category || "Uncategorized",
         item.hsnCode,
         item.unitPrice.toString(),
-        item.lastUsed,
+        item.lastUsed || "",
       ]),
     ]
       .map((row) => row.join(","))
@@ -283,6 +354,18 @@ export default function ClientItems({
     a.download = `client-items-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const toggleCategoryCollapse = (category: string) => {
+    setCollapsedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
   };
 
   if (!clientId) {
@@ -307,6 +390,11 @@ export default function ClientItems({
                 </span>
               </div>
               Client Items
+              {selectedCategory !== "all" && (
+                <Badge variant="secondary" className="ml-2">
+                  {selectedCategory}
+                </Badge>
+              )}
             </CardTitle>
             <CardDescription>
               {selectedItemIds.length > 0
@@ -328,16 +416,27 @@ export default function ClientItems({
                 size="sm"
                 onClick={() => setViewMode("table")}
                 className="rounded-r-none"
+                title="Table View"
               >
-                Table
+                <List className="h-4 w-4" />
               </Button>
               <Button
                 variant={viewMode === "cards" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("cards")}
-                className="rounded-l-none"
+                className="rounded-none"
+                title="Cards View"
               >
-                Cards
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grouped" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("grouped")}
+                className="rounded-l-none"
+                title="Grouped by Category"
+              >
+                <Tag className="h-4 w-4" />
               </Button>
             </div>
 
@@ -399,6 +498,38 @@ export default function ClientItems({
                       />
                     </div>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium">Category</label>
+                    <Select
+                      value={newItem.category}
+                      onValueChange={(value) =>
+                        setNewItem((prev) => ({ ...prev, category: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select or type category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="General">General</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      className="mt-2"
+                      value={newItem.category}
+                      onChange={(e) =>
+                        setNewItem((prev) => ({
+                          ...prev,
+                          category: e.target.value,
+                        }))
+                      }
+                      placeholder="Or type new category"
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button
@@ -426,7 +557,7 @@ export default function ClientItems({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search items by description, HSN code..."
+                  placeholder="Search items by description, HSN code, or category..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -434,6 +565,24 @@ export default function ClientItems({
               </div>
 
               <div className="flex gap-2">
+                {/* Category Filter */}
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <Button
                   variant={showFavoritesOnly ? "default" : "outline"}
                   size="sm"
@@ -544,6 +693,135 @@ export default function ClientItems({
                 No items match your current filters. Try adjusting your search
                 or filters.
               </div>
+            ) : viewMode === "grouped" ? (
+              /* Grouped View */
+              <div className="space-y-4">
+                {groupedItems.map(({ category, items, count }) => (
+                  <Collapsible
+                    key={category}
+                    open={!collapsedCategories.has(category)}
+                    onOpenChange={() => toggleCategoryCollapse(category)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between p-4 h-auto border rounded-lg hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4" />
+                          <span className="font-medium">{category}</span>
+                          <Badge variant="secondary">{count} items</Badge>
+                        </div>
+                        <ArrowDown
+                          className={`h-4 w-4 transition-transform ${
+                            collapsedCategories.has(category)
+                              ? "rotate-180"
+                              : ""
+                          }`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
+                        {items.map((item) => (
+                          <Card
+                            key={item._id}
+                            className={`cursor-pointer hover:shadow-md transition-all border-2 ${
+                              selectedItemIds.includes(item._id)
+                                ? "border-primary bg-primary/5"
+                                : "hover:border-primary/50"
+                            }`}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedItemIds.includes(item._id)}
+                                    onChange={(e) =>
+                                      handleItemSelection(
+                                        item._id,
+                                        e.target.checked
+                                      )
+                                    }
+                                    className="rounded"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectItem(item);
+                                    }}
+                                    title="Add single item"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingItem(item);
+                                    }}
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteItem(item._id);
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <h4 className="font-medium text-sm mb-2 line-clamp-2">
+                                {item.description}
+                              </h4>
+                              <div className="flex justify-between items-center text-sm mb-2">
+                                <span className="text-muted-foreground">
+                                  HSN: {item.hsnCode}
+                                </span>
+                                <span className="font-semibold">
+                                  ₹{item.unitPrice.toLocaleString()}
+                                </span>
+                              </div>
+                              {selectedItemIds.includes(item._id) && (
+                                <div className="mt-2 flex items-center gap-2">
+                                  <span className="text-xs">Qty:</span>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    value={bulkQuantities[item._id] || 1}
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item._id,
+                                        Number.parseInt(e.target.value)
+                                      )
+                                    }
+                                    className="w-16 h-6 text-xs"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+              </div>
             ) : viewMode === "table" ? (
               /* Table View */
               <div className="border rounded-lg overflow-hidden">
@@ -570,6 +848,16 @@ export default function ClientItems({
                           className="font-medium p-0 h-auto"
                         >
                           Description {getSortIcon("description")}
+                        </Button>
+                      </th>
+                      <th className="p-3 text-left">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSort("category")}
+                          className="font-medium p-0 h-auto"
+                        >
+                          Category {getSortIcon("category")}
                         </Button>
                       </th>
                       <th className="p-3 text-left">
@@ -619,6 +907,11 @@ export default function ClientItems({
                               {item.description}
                             </p>
                           </div>
+                        </td>
+                        <td className="p-3">
+                          <Badge variant="outline" className="text-xs">
+                            {item.category || "Uncategorized"}
+                          </Badge>
                         </td>
                         <td className="p-3 text-sm text-muted-foreground">
                           {item.hsnCode}
@@ -686,6 +979,9 @@ export default function ClientItems({
                             className="rounded"
                             onClick={(e) => e.stopPropagation()}
                           />
+                          <Badge variant="outline" className="text-xs">
+                            {item.category || "Uncategorized"}
+                          </Badge>
                         </div>
                         <div className="flex gap-1">
                           <Button
@@ -811,6 +1107,41 @@ export default function ClientItems({
                       placeholder="HSN Code"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Category</label>
+                  <Select
+                    value={editingItem.category || ""}
+                    onValueChange={(value) =>
+                      setEditingItem((prev: any) => ({
+                        ...prev,
+                        category: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select or type category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="General">General</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    className="mt-2"
+                    value={editingItem.category || ""}
+                    onChange={(e) =>
+                      setEditingItem((prev: any) => ({
+                        ...prev,
+                        category: e.target.value,
+                      }))
+                    }
+                    placeholder="Or type new category"
+                  />
                 </div>
               </div>
             )}

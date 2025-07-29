@@ -29,7 +29,7 @@ export interface DispatchDetails {
 }
 
 export interface HRDescription {
-  year?: number;
+  year?: string;
   month?: string;
   hrCode?: string;
   hrName?: string;
