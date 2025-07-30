@@ -13,7 +13,11 @@ const invoiceDetails = StyleSheet.create({
   },
 });
 
-function InvoiceDetails({ invoice }) {
+interface invoiceProps {
+  invoice: any;
+}
+
+function InvoiceDetails({ invoice }: invoiceProps) {
   return (
     <View style={invoiceDetails.container}>
       <InvoiceNoDetails

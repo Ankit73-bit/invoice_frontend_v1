@@ -43,7 +43,11 @@ const dispatchDetailsStyle = StyleSheet.create({
   },
 });
 
-function DispatchDetails({ dispatchDetails }) {
+interface dispatchDetailsProps {
+  dispatchDetails: any;
+}
+
+function DispatchDetails({ dispatchDetails }: dispatchDetailsProps) {
   return (
     <View style={dispatchDetailsStyle.container}>
       <View style={dispatchDetailsStyle.dispatchflex}>

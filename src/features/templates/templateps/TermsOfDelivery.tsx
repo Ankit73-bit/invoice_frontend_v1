@@ -17,7 +17,11 @@ const referenceDetails = StyleSheet.create({
   },
 });
 
-function TermsOfDelivery({ terms }) {
+interface TermsOfDeliveryProps {
+  terms: any;
+}
+
+function TermsOfDelivery({ terms }: TermsOfDeliveryProps) {
   return (
     <View style={referenceDetails.container}>
       <Text style={referenceDetails.terms}>Terms Of Delivery: {terms}</Text>

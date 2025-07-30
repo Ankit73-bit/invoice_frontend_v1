@@ -21,7 +21,11 @@ const declarationStyle = StyleSheet.create({
   },
 });
 
-function Declaration({ declarationInput }) {
+interface declarationProps {
+  declarationInput: any;
+}
+
+function Declaration({ declarationInput }: declarationProps) {
   return (
     <View style={declarationStyle.container}>
       <View style={declarationStyle.declaration}>

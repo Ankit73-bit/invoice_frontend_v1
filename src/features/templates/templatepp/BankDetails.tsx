@@ -1,6 +1,10 @@
 import { StyleSheet, Text, View } from "@react-pdf/renderer";
 
-function BankDetails({ bankDetails }) {
+interface BankDetailsProps {
+  bankDetails: any;
+}
+
+function BankDetails({ bankDetails }: BankDetailsProps) {
   const bankDetailsStyle = StyleSheet.create({
     bankDetails: {
       padding: 4,

@@ -1,12 +1,19 @@
 import { fixed2Decimal } from "@/features/utils/helpers";
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 
+interface AmountCalculationsProps {
+  gstDetails: any;
+  roundingOff: number;
+  grossAmount: number;
+  totalBeforeGST: number;
+}
+
 function AmountCalculations({
   gstDetails,
   roundingOff,
   grossAmount,
   totalBeforeGST,
-}) {
+}: AmountCalculationsProps) {
   const amountCalculationStyle = StyleSheet.create({
     container: {
       display: "flex",

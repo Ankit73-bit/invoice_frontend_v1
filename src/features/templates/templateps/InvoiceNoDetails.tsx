@@ -25,7 +25,12 @@ const invoiceDetails = StyleSheet.create({
   },
 });
 
-function InvoiceNoDetails({ invoiceNo, invoiceDate }) {
+interface invoiceNoDetailsProps {
+  invoiceNo: string;
+  invoiceDate: any;
+}
+
+function InvoiceNoDetails({ invoiceNo, invoiceDate }: invoiceNoDetailsProps) {
   return (
     <View style={invoiceDetails.container}>
       <Text style={invoiceDetails.invoiceNo}>Invoice No: {invoiceNo}</Text>

@@ -1,6 +1,10 @@
 import { StyleSheet, Text, View } from "@react-pdf/renderer";
 
-function Inwords({ amountInWords }) {
+interface InwordsProps {
+  amountInWords: string;
+}
+
+function Inwords({ amountInWords }: InwordsProps) {
   const inwordsStyle = StyleSheet.create({
     AMTDetails: {
       padding: 4,

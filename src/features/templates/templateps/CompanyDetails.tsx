@@ -16,7 +16,11 @@ const companyStyles = StyleSheet.create({
   },
 });
 
-function CompanyDetails({ company }) {
+interface companyProps {
+  company: any;
+}
+
+function CompanyDetails({ company }: companyProps) {
   return (
     <View style={companyStyles.container}>
       <Text style={companyStyles.companyName}>{company?.companyName}</Text>

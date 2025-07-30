@@ -68,7 +68,6 @@ export const InvoicePDFPS: React.FC<InvoicePDFProps> = ({
   client,
   consignee,
 }) => {
-  console.log(invoice);
   return (
     <Document>
       <Page style={styles.page} wrap={true}>

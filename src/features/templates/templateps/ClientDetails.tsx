@@ -14,7 +14,11 @@ const clientStyles = StyleSheet.create({
   },
 });
 
-function ClientDetails({ client }) {
+interface clientProps {
+  client: any;
+}
+
+function ClientDetails({ client }: clientProps) {
   return (
     <View style={clientStyles.container}>
       <Text>Client:</Text>

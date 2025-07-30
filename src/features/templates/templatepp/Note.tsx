@@ -35,7 +35,11 @@ const noteStyle = StyleSheet.create({
   total: { padding: 4, width: "16%", textAlign: "center" },
 });
 
-function Note({ note }) {
+interface NoteProps {
+  note: string;
+}
+
+function Note({ note }: NoteProps) {
   return (
     <>
       <View style={noteStyle.container}>

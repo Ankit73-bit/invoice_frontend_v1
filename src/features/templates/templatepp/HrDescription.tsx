@@ -1,6 +1,10 @@
 import { StyleSheet, Text, View } from "@react-pdf/renderer";
 
-function HrDescription({ hrDescription }) {
+interface hrDescriptionProps {
+  hrDescription: any;
+}
+
+function HrDescription({ hrDescription }: hrDescriptionProps) {
   const hrDescriptionStyle = StyleSheet.create({
     container: {
       display: "flex",
@@ -35,8 +39,6 @@ function HrDescription({ hrDescription }) {
       padding: 4,
     },
   });
-
-  console.log(hrDescription);
 
   return (
     <>

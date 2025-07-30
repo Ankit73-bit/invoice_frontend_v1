@@ -55,20 +55,19 @@ const styles = StyleSheet.create({
   text: { fontSize: 12 },
 });
 
-interface InvoicePDFProps {
+interface InvoicePDFPPProps {
   invoice: any;
   company: any;
   client: any;
   consignee?: any;
 }
 
-export const InvoicePDFPP: React.FC<InvoicePDFProps> = ({
+export const InvoicePDFPP = ({
   invoice,
   company,
   client,
   consignee,
-}) => {
-  console.log(invoice.hrDescription);
+}: InvoicePDFPPProps) => {
   const isPiramal = client?.clientCompanyName?.startsWith("PIRAMAL");
   return (
     <Document>

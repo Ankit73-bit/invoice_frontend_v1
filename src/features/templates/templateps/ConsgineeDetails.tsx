@@ -20,7 +20,12 @@ const consigneeStyles = StyleSheet.create({
   },
 });
 
-function ConsigneeDetails({ consignee, invoice }) {
+interface consigneeProps {
+  consignee: any;
+  invoice: any;
+}
+
+function ConsigneeDetails({ consignee, invoice }: consigneeProps) {
   if (!consignee) {
     return (
       <View style={consigneeStyles.container}>

@@ -39,7 +39,11 @@ const descriptionStyle = StyleSheet.create({
   },
 });
 
-function Description({ items }) {
+interface itemsProps {
+  items: any;
+}
+
+function Description({ items }: itemsProps) {
   if (!items) return;
   return (
     <>

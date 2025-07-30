@@ -32,7 +32,15 @@ const referenceDetails = StyleSheet.create({
   },
 });
 
-function ReferenceDetails({ referenceNo, referenceDate }) {
+interface ReferenceDetailsProps {
+  referenceNo: any;
+  referenceDate: any;
+}
+
+function ReferenceDetails({
+  referenceNo,
+  referenceDate,
+}: ReferenceDetailsProps) {
   return (
     <View style={referenceDetails.container}>
       <Text style={referenceDetails.referenceNo}>

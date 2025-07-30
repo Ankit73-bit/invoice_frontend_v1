@@ -2,7 +2,12 @@ import { StyleSheet, View } from "@react-pdf/renderer";
 import BankDetailsAndAMT from "./BankDetailsAndAMT";
 import AmountCalculations from "./AmountCalculations";
 
-function AmountDetails({ invoice, company }) {
+interface AmountDetailsProps {
+  invoice: any;
+  company: any;
+}
+
+function AmountDetails({ invoice, company }: AmountDetailsProps) {
   const amountStyles = StyleSheet.create({
     container: {
       display: "flex",

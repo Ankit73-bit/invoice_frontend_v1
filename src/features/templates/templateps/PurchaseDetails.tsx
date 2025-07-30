@@ -25,7 +25,12 @@ const purchaseDetails = StyleSheet.create({
   },
 });
 
-function PurchaseDetails({ purchaseNo, purchaseDate }) {
+interface PurchaseDetailsProps {
+  purchaseNo: any;
+  purchaseDate: any;
+}
+
+function PurchaseDetails({ purchaseNo, purchaseDate }: PurchaseDetailsProps) {
   return (
     <View style={purchaseDetails.container}>
       <Text style={purchaseDetails.purchaseNo}>
