@@ -1,28 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-
-interface InvoiceSummary {
-  totalInvoices: number;
-  totalRevenue: number;
-  paid: number;
-  pending: number;
-  overdue: number;
-}
-
-interface MonthlyStats {
-  month: string;
-  count: number;
-  revenue: number;
-}
-
-interface TopClient {
-  client: {
-    _id: string;
-    clientCompanyName: string;
-  };
-  invoiceCount: number;
-  totalRevenue: number;
-}
+import type { InvoiceSummary, MonthlyStats, TopClient } from "@/lib/types";
 
 export function useInvoiceAnalytics(companyId?: string) {
   const [summary, setSummary] = useState<InvoiceSummary | null>(null);

@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState, useEffect } from "react";
 import {
   Plus,
@@ -80,7 +78,6 @@ export default function ClientItems({
   clientId,
   onItemSelect,
   onBulkSelect,
-  selectedItems,
 }: ClientItemsManagerProps) {
   const { items } = useClientItems(clientId);
   const { selectedCompanyId } = useCompanyContext();

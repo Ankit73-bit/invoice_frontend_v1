@@ -1,9 +1,9 @@
 import { useClientStore } from "@/store/clientStore";
 import { useClients } from "@/hooks/useClients";
 import { Button } from "@/components/ui/button";
-import type { Client } from "@/store/clientStore";
 import { GenericTable } from "@/features/components/GenericTable";
 import TableCellViewer from "@/features/components/TableCellViewer";
+import type { Client } from "@/lib/types";
 
 export interface ColumnConfig<T> {
   label: string;

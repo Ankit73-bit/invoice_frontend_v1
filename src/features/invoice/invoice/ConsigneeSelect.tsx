@@ -1,5 +1,5 @@
 import { SearchableSelect } from "@/features/components/SearchableSelect";
-import type { Consignee } from "@/store/consigneeStore";
+import type { Consignee } from "@/lib/types";
 
 interface ConsigneeSelectProps {
   consignees: Consignee[];

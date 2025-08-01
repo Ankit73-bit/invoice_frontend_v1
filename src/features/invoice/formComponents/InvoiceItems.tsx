@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
-import type { FormValues } from "../invoice/CreateInvoicePS";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 type Props = {
   form: UseFormReturn<FormValues>;

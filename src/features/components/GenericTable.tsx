@@ -29,9 +29,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { type Consignee } from "@/store/consigneeStore";
-import { type Client } from "@/store/clientStore";
 import { toast } from "react-toastify";
+import type { Client, Consignee } from "@/lib/types";
 
 interface ColumnConfig<T> {
   label: string;
@@ -185,10 +184,6 @@ export function GenericTable<T>({
                                   };
 
                                   try {
-                                    const res = await api.post(
-                                      "/consignees",
-                                      mapped
-                                    );
                                     toast.success("Copied to consignee");
                                   } catch (error) {
                                     toast.error("Failed to copy");

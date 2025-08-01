@@ -1,9 +1,9 @@
 import { useConsigneeStore } from "@/store/consigneeStore";
 import { useConsignees } from "@/hooks/useConsignees";
 import { Button } from "@/components/ui/button";
-import type { Consignee } from "@/store/consigneeStore";
 import { GenericTable } from "@/features/components/GenericTable";
 import TableCellViewer from "@/features/components/TableCellViewer";
+import type { Consignee } from "@/lib/types";
 
 export interface ColumnConfig<T> {
   label: string;

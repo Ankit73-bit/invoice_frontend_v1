@@ -1,3 +1,4 @@
+import type { InvoiceItem } from "@/store/invoiceStore";
 import { StyleSheet, Text, View } from "@react-pdf/renderer";
 
 const descriptionStyle = StyleSheet.create({
@@ -40,7 +41,7 @@ const descriptionStyle = StyleSheet.create({
 });
 
 interface itemsProps {
-  items: any;
+  items: InvoiceItem[];
 }
 
 function Description({ items }: itemsProps) {

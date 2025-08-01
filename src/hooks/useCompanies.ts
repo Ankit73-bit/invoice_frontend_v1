@@ -1,15 +1,8 @@
 import { api } from "@/lib/api";
+import type { Company } from "@/lib/types";
 import { useLoaderStore } from "@/store/loaderStore";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-
-export interface Company {
-  _id: string;
-  companyName: string;
-  invoicePrefix: string;
-  allowManualItemTotals: string;
-  isActive: string;
-}
 
 export function useCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);

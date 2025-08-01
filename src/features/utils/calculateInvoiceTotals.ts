@@ -1,30 +1,6 @@
-export interface InvoiceItem {
-  total: string | number;
-}
+import type { CalculatedTotals, GSTDetails, InvoiceItem } from "@/lib/types";
 
-export interface GSTDetails {
-  type: "CGST" | "IGST" | "None";
-  cgstRate?: number;
-  sgstRate?: number;
-  igstRate?: number;
-  fuelSurchargeRate?: number;
-}
-
-export interface CalculatedTotals {
-  totalBeforeGST: number;
-  cgstAmount: number;
-  sgstAmount: number;
-  igstAmount: number;
-  fuelSurchargeAmount: number;
-  totalGSTAmount: number;
-  totalAmount: number;
-  roundingOff: number;
-  grossAmount: number;
-}
-
-/**
- * Calculates GST and invoice totals from items and gst config.
- */
+/* Calculates GST and invoice totals from items and gst config. */
 export function calculateInvoiceTotals(
   items: InvoiceItem[],
   gst: GSTDetails

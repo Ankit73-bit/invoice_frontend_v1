@@ -18,7 +18,7 @@ const referenceDetails = StyleSheet.create({
 });
 
 interface TermsOfDeliveryProps {
-  terms: any;
+  terms: string;
 }
 
 function TermsOfDelivery({ terms }: TermsOfDeliveryProps) {

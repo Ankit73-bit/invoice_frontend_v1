@@ -1,17 +1,8 @@
 import {
-  IconCamera,
   IconChartBar,
   IconDashboard,
-  IconFileAi,
-  IconFileDescription,
-  IconFolder,
-  IconHelp,
   IconInnerShadowTop,
   IconListDetails,
-  IconSearch,
-  IconSettings,
-  IconUsers,
-  IconLayersSubtract,
 } from "@tabler/icons-react";
 
 import {
@@ -27,7 +18,6 @@ import { NavMain } from "./NavMain";
 // import { NavSecondary } from "./NavSecondary";
 import { NavUser } from "./NavUser";
 import { useAuthStore } from "@/store/authStore";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,

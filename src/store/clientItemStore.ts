@@ -1,14 +1,5 @@
+import type { ClientItem } from "@/lib/types";
 import { create } from "zustand";
-
-export interface ClientItem {
-  _id: string;
-  clientId: string;
-  companyId: string;
-  description: string;
-  unitPrice: number;
-  hsnCode: string;
-  lastUsed?: string;
-}
 
 interface ClientItemStore {
   items: ClientItem[];

@@ -34,11 +34,17 @@ export function handleCGSTRateChange(
   setValue("gstDetails.sgstRate", rate); // Auto-sync SGST with CGST
 }
 
+function toNumber(value: string | number, fallback = 0): number {
+  if (typeof value === "number") return value;
+  const parsed = Number.parseFloat(value);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 export function normalizeItemsForPDF(items: FormValues["items"]) {
   return items.map((item) => ({
     ...item,
-    quantity: Number(item.quantity),
-    unitPrice: item.unitPrice === "-" ? "-" : Number.parseFloat(item.unitPrice),
-    total: Number.parseFloat(item.total),
+    quantity: Number(item.quantity), // assumes quantity is string|number; Number(...) coerces safely
+    unitPrice: item.unitPrice === "-" ? "-" : toNumber(item.unitPrice), // handles string or number
+    total: toNumber(item.total),
   }));
 }

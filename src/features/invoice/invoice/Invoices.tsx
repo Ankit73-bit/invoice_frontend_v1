@@ -403,9 +403,9 @@ export default function Invoices() {
     }
   };
 
-  const handleCopy = (invoice: Invoice) => {
-    toast.info("Copy functionality to be implemented");
-  };
+  // const handleCopy = (invoice: Invoice) => {
+  //   toast.info("Copy functionality to be implemented");
+  // };
 
   const handleDownload = async (invoice: Invoice) => {
     try {
@@ -426,9 +426,9 @@ export default function Invoices() {
     }
   };
 
-  const handleSend = (invoice: Invoice) => {
-    toast.info("Send functionality to be implemented");
-  };
+  // const handleSend = (invoice: Invoice) => {
+  //   toast.info("Send functionality to be implemented");
+  // };
 
   const handleStatusUpdate = async (
     invoiceId: string,
@@ -817,7 +817,7 @@ export default function Invoices() {
                           setFilters((prev) => ({ ...prev, company: value }));
                           // If selecting "All Companies", clear the selectedCompanyId
                           if (value === "All Companies") {
-                            setSelectedCompanyId(null);
+                            setSelectedCompanyId("");
                           }
                         }}
                       >
@@ -1234,15 +1234,11 @@ export default function Invoices() {
                               <Download className="mr-2 h-4 w-4" />
                               Download PDF
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleCopy(invoice)}
-                            >
+                            <DropdownMenuItem>
                               <Copy className="mr-2 h-4 w-4" />
                               Duplicate
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleSend(invoice)}
-                            >
+                            <DropdownMenuItem>
                               <Send className="mr-2 h-4 w-4" />
                               Send to Client
                             </DropdownMenuItem>

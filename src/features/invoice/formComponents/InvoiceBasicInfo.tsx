@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { DatePicker } from "@/features/components/DatePicker";
 import type { UseFormReturn } from "react-hook-form";
-import type { FormValues } from "../invoice/CreateInvoicePS";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 type Props = {
   form: UseFormReturn<FormValues>;

@@ -1,28 +1,5 @@
+import type { Consignee } from "@/lib/types";
 import { create } from "zustand";
-
-export interface Address {
-  add1?: string;
-  add2?: string;
-  add3?: string;
-  city?: string;
-  state?: string;
-  pinCode?: string;
-  country?: string;
-  panNo?: string;
-  gstNo?: string;
-  stateCode?: string;
-}
-
-export interface Consignee {
-  _id: string;
-  consigneeCompanyName: string;
-  consigneeName?: string;
-  company: string;
-  contact?: string;
-  email?: string;
-  address: Address;
-  createdAt: string;
-}
 
 interface ConsigneeStore {
   consignees: Consignee[];

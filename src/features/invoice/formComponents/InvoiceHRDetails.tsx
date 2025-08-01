@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { UseFormReturn } from "react-hook-form";
-import type { FormValues } from "../invoice/CreateInvoicePS";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 type Props = {
   form: UseFormReturn<FormValues>;

@@ -1,5 +1,5 @@
 import { SearchableSelect } from "@/features/components/SearchableSelect";
-import type { Client } from "@/store/clientStore";
+import type { Client } from "@/lib/types";
 
 interface ClientSelectProps {
   clients: Client[];

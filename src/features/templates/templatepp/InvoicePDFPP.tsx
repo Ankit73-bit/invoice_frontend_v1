@@ -1,4 +1,3 @@
-import type React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import CompanyDetails from "./CompanyDetails";
 import InvoiceDetails from "./InvoiceDetails";
@@ -10,6 +9,8 @@ import Description from "./Description";
 import AmountDetails from "./AmountDetails";
 import Declaration from "./Declaration";
 import HrDescription from "./HrDescription";
+import type { Invoice } from "@/store/invoiceStore";
+import type { DocumentProps } from "@react-pdf/renderer";
 
 // Register fonts if needed
 // Font.register({
@@ -55,8 +56,8 @@ const styles = StyleSheet.create({
   text: { fontSize: 12 },
 });
 
-interface InvoicePDFPPProps {
-  invoice: any;
+interface InvoicePDFPPProps extends DocumentProps {
+  invoice: Invoice;
   company: any;
   client: any;
   consignee?: any;
@@ -67,10 +68,11 @@ export const InvoicePDFPP = ({
   company,
   client,
   consignee,
+  ...docProps
 }: InvoicePDFPPProps) => {
   const isPiramal = client?.clientCompanyName?.startsWith("PIRAMAL");
   return (
-    <Document>
+    <Document {...docProps}>
       <Page style={styles.page} wrap={true}>
         <View style={styles.header}>
           <Text>Tax Invoice (Original)</Text>
@@ -83,7 +85,7 @@ export const InvoicePDFPP = ({
           <ConsigneeDetails consignee={consignee} invoice={invoice} />
           <ClientDetails client={client} />
         </View>
-        {invoice?.detailsSchema?.termsOfDelivery?.length > 0 && (
+        {invoice?.detailsSchema?.termsOfDelivery && (
           <View style={styles.section3}>
             <TermsOfDelivery terms={invoice.detailsSchema.termsOfDelivery} />
           </View>

@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { UseFormReturn } from "react-hook-form";
-import type { FormValues } from "../invoice/CreateInvoicePS";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 type Props = {
   form: UseFormReturn<FormValues>;

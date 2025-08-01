@@ -1,8 +1,10 @@
 import { format, formatDistance, parseISO } from "date-fns";
 import { differenceInDays } from "date-fns";
 
-export const subtractDates = (dateStr1: any, dateStr2: any) =>
-  differenceInDays(parseISO(String(dateStr1)), parseISO(String(dateStr2)));
+export const subtractDates = (
+  dateStr1: string | Date | number,
+  dateStr2: string | Date | number
+) => differenceInDays(parseISO(String(dateStr1)), parseISO(String(dateStr2)));
 
 export const formatDistanceFromNow = (dateStr: string) =>
   formatDistance(parseISO(dateStr), new Date(), {

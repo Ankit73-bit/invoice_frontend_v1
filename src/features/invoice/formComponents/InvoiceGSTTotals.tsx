@@ -23,7 +23,7 @@ import {
   FUEL_SURCHARGE_OPTIONS,
 } from "@/features/utils/constant";
 import type { UseFormReturn } from "react-hook-form";
-import type { FormValues } from "../invoice/CreateInvoicePS";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 type Props = {
   form: UseFormReturn<FormValues>;
