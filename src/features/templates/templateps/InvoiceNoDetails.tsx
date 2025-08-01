@@ -27,7 +27,7 @@ const invoiceDetails = StyleSheet.create({
 
 interface invoiceNoDetailsProps {
   invoiceNo: string;
-  invoiceDate: any;
+  invoiceDate: string | Date | number;
 }
 
 function InvoiceNoDetails({ invoiceNo, invoiceDate }: invoiceNoDetailsProps) {

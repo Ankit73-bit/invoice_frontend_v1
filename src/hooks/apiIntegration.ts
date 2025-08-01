@@ -26,8 +26,6 @@ export const useInvoiceAPI = () => {
   }) => {
     start();
     try {
-      console.log("🔍 Fetching invoices with params:", params);
-
       // Clean up params - remove undefined/empty values
       const cleanParams = Object.entries(params || {}).reduce(
         (acc, [key, value]) => {
@@ -46,11 +44,7 @@ export const useInvoiceAPI = () => {
         {} as Record<string, any>
       );
 
-      console.log("🧹 Cleaned params:", cleanParams);
-
       const { data } = await api.get("/invoices", { params: cleanParams });
-
-      console.log("📥 API Response:", data);
 
       // Normalize response structure
       const result = {
@@ -58,8 +52,6 @@ export const useInvoiceAPI = () => {
         total: data.results || data.data?.invoices?.length || 0,
         pagination: data.pagination,
       };
-
-      console.log("✅ Normalized result:", result);
 
       return { data: result };
     } catch (err) {
@@ -138,10 +130,9 @@ export const useInvoiceAPI = () => {
     }
   };
 
-  const downloadInvoicePDF = async (element: unknown, invoiceId: string) => {
+  const downloadInvoicePDF = async (invoiceId: string) => {
     try {
       // Mock PDF download
-      console.log(`📄 Downloading PDF for invoice: ${invoiceId}`);
       const blob = new Blob(["Mock PDF content"], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");

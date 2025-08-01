@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/features/components/DatePicker";
 import type { UseFormReturn } from "react-hook-form";
-import type { FormValues } from "../invoice/CreateInvoicePS";
 import type { Client } from "@/store/clientStore";
 import type { Consignee } from "@/store/consigneeStore";
 import { ClientSelect } from "../invoice/ClientSelect";
 import { ConsigneeSelect } from "../invoice/ConsigneeSelect";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 type Props = {
   form: UseFormReturn<FormValues>;

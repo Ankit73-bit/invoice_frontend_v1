@@ -33,8 +33,8 @@ const referenceDetails = StyleSheet.create({
 });
 
 interface ReferenceDetailsProps {
-  referenceNo: any;
-  referenceDate: any;
+  referenceNo: string | number | undefined;
+  referenceDate: string | number | Date;
 }
 
 function ReferenceDetails({

@@ -26,8 +26,8 @@ const purchaseDetails = StyleSheet.create({
 });
 
 interface PurchaseDetailsProps {
-  purchaseNo: any;
-  purchaseDate: any;
+  purchaseNo: string | number | undefined;
+  purchaseDate: string | number | Date;
 }
 
 function PurchaseDetails({ purchaseNo, purchaseDate }: PurchaseDetailsProps) {
