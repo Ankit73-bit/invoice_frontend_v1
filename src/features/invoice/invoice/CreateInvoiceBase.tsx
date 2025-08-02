@@ -1,4 +1,9 @@
-import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  type SubmitHandler,
+} from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -186,7 +191,7 @@ export function CreateInvoiceBase({
     fetchInvoiceNo();
   }, [selectedCompanyId, isEditing]);
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit: SubmitHandler<FormValues> = async (values: FormValues) => {
     try {
       const cleanedItems = values.items.map((item) => ({
         ...item,

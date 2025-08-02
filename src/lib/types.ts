@@ -1,10 +1,18 @@
 export interface InvoiceItem {
   description: string;
   hsnCode?: string;
-  unitPrice?: string;
+  unitPrice?: string | number;
   quantity?: number;
-  total?: number;
+  total?: string | number;
 }
+
+export type FormInvoiceItem = {
+  description: string;
+  hsnCode: string;
+  quantity: number;
+  unitPrice: string | number;
+  total: string | number;
+};
 
 export interface GSTDetails {
   type: "CGST" | "SGST" | "IGST" | "None";

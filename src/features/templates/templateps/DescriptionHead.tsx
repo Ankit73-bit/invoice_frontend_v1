@@ -4,7 +4,7 @@ const descriptionHeadStyle = StyleSheet.create({
   container: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "start",
+    justifyContent: "flex-start",
     borderBottom: "1px solid black",
     alignItems: "center",
     fontWeight: "bold",

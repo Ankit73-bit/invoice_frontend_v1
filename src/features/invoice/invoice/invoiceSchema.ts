@@ -76,5 +76,5 @@ export const invoiceSchema = z.object({
   // Misc
   note: z.string().optional(),
   declaration: z.string().min(1, "Declaration is required"),
-  status: z.enum(["Pending", "Paid", "Overdue"]).default("Pending"),
+  status: z.enum(["Pending", "Paid", "Overdue"]),
 });

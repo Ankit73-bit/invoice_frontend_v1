@@ -1,8 +1,9 @@
+import type { UseFormSetValue } from "react-hook-form";
 import type { FormValues } from "../invoice/invoice/CreateInvoiceBase";
 
 export function handleGSTTypeChange(
   value: "CGST" | "IGST" | "None",
-  setValue: (path: string, value: any) => void
+  setValue: UseFormSetValue<FormValues>
 ) {
   setValue("gstDetails.type", value);
 
@@ -27,7 +28,7 @@ export function handleGSTTypeChange(
 
 export function handleCGSTRateChange(
   value: string,
-  setValue: (path: string, value: any) => void
+  setValue: UseFormSetValue<FormValues>
 ) {
   const rate = Number.parseFloat(value);
   setValue("gstDetails.cgstRate", rate);
