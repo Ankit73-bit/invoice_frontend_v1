@@ -79,7 +79,7 @@ export interface User {
   fullName: string;
   email: string;
   role: "user" | "admin";
-  company: string;
+  company: Company;
 }
 
 export interface Address {
@@ -128,7 +128,7 @@ export interface Consignee {
 
 export interface ClientItem {
   _id: string;
-  clientId: string;
+  clientId: string | Client;
   companyId: string;
   description: string;
   unitPrice: number;

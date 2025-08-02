@@ -12,7 +12,7 @@ export function useClients() {
     const fetchClients = async () => {
       try {
         const res = await api.get(`/clients?companyId=${selectedCompanyId}`);
-        setClients(res.data.data); // assuming data shape is { data: Client[] }
+        setClients(res.data.data);
       } catch (error) {
         console.error("Failed to fetch clients", error);
         toast.error("Failed to load clients");

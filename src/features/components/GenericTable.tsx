@@ -189,10 +189,7 @@ export function GenericTable<T>({
                                   };
 
                                   try {
-                                    const res = await api.post(
-                                      "/consignees",
-                                      mapped
-                                    );
+                                    await api.post("/consignees", mapped);
                                     toast.success("Copied to consignee");
                                   } catch (error) {
                                     toast.error("Failed to copy");
@@ -219,10 +216,7 @@ export function GenericTable<T>({
                                   };
 
                                   try {
-                                    const res = await api.post(
-                                      "/clients",
-                                      mapped
-                                    );
+                                    await api.post("/clients", mapped);
                                     toast.success("Copied to client");
                                   } catch (error) {
                                     toast.error("Failed to copy");

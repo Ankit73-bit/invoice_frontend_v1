@@ -39,7 +39,7 @@ export function ConsigneeForm() {
       setSelectedItem={setSelectedConsignee}
       addItem={addConsignee}
       updateItem={updateConsignee}
-      renderFields={(register, errors) => (
+      renderFields={(register) => (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

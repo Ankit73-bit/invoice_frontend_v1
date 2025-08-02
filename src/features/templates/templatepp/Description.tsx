@@ -1,4 +1,4 @@
-import type { InvoiceItem } from "@/store/invoiceStore";
+import type { InvoiceItem } from "@/lib/types";
 import { StyleSheet, Text, View } from "@react-pdf/renderer";
 
 const descriptionStyle = StyleSheet.create({

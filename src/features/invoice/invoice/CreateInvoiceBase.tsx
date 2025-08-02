@@ -47,7 +47,6 @@ interface CreateInvoiceBaseProps {
 }
 
 export function CreateInvoiceBase({
-  invoiceType,
   PDFTemplate,
   showHRSection = false,
 }: CreateInvoiceBaseProps) {
@@ -128,8 +127,7 @@ export function CreateInvoiceBase({
     unitPriceOverride?: string
   ) => {
     const quantity = quantityOverride ?? Number(watchedItems[index]?.quantity);
-    const unitPriceRaw =
-      unitPriceOverride ?? watchedItems[index]?.unitPrice?.trim();
+    const unitPriceRaw = unitPriceOverride ?? watchedItems[index]?.unitPrice;
 
     if (!unitPriceRaw || unitPriceRaw === "-") {
       if (!manualTotalIndexes.includes(index))
@@ -140,7 +138,7 @@ export function CreateInvoiceBase({
     if (manualTotalIndexes.includes(index))
       setManualTotalIndexes((prev) => prev.filter((i) => i !== index));
 
-    const total = quantity * parseFloat(unitPriceRaw);
+    const total = quantity * parseFloat(String(unitPriceRaw));
     form.setValue(`items.${index}.total`, total.toFixed(2));
   };
 
@@ -192,7 +190,8 @@ export function CreateInvoiceBase({
     try {
       const cleanedItems = values.items.map((item) => ({
         ...item,
-        unitPrice: item.unitPrice === "-" ? "-" : parseFloat(item.unitPrice),
+        unitPrice:
+          item.unitPrice === "-" ? "-" : parseFloat(String(item.unitPrice)),
         quantity: Number(item.quantity),
         total: Number(item.total),
       }));

@@ -69,7 +69,7 @@ import { toast } from "react-toastify";
 import type { ClientItem } from "@/lib/types";
 
 interface ClientItemsManagerProps {
-  clientId: string;
+  clientId: string | undefined;
   onItemSelect: (item: {
     description: string;
     unitPrice: string;
