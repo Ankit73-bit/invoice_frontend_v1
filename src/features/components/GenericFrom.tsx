@@ -1,24 +1,24 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldValues, type DefaultValues } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 import { useCompanyContext } from "@/store/companyContextStore";
 
-interface GenericFormProps<T> {
-  apiBase: string; // e.g., "clients" or "consignees"
-  defaultValues: T;
+interface GenericFormProps<T extends FieldValues> {
+  apiBase: string;
+  defaultValues: DefaultValues<T>;
   selectedItem: T | null;
   setSelectedItem: (val: T | null) => void;
   addItem: (val: T) => void;
   updateItem: (val: T) => void;
   renderFields: (
-    register: ReturnType<typeof useForm>["register"],
+    register: ReturnType<typeof useForm<T>>["register"],
     errors: unknown
   ) => React.ReactNode;
 }
 
-export function GenericForm<T extends { _id?: string }>({
+export function GenericForm<T extends FieldValues>({
   apiBase,
   defaultValues,
   selectedItem,

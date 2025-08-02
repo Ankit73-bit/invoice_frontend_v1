@@ -9,8 +9,8 @@ import Description from "./Description";
 import AmountDetails from "./AmountDetails";
 import Declaration from "./Declaration";
 import HrDescription from "./HrDescription";
-import type { Invoice } from "@/store/invoiceStore";
 import type { DocumentProps } from "@react-pdf/renderer";
+import type { Invoice } from "@/lib/types";
 
 // Register fonts if needed
 // Font.register({

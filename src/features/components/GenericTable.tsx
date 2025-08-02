@@ -133,9 +133,14 @@ export function GenericTable<T>({
                             </td>
                           );
                         }
-                        const val = col.accessor
-                          .split(".")
-                          .reduce((acc: any, part) => acc?.[part], item);
+                        const accessorPath =
+                          typeof col.accessor === "string"
+                            ? col.accessor.split(".")
+                            : [];
+                        const val = accessorPath.reduce(
+                          (acc: any, part: string) => acc?.[part],
+                          item
+                        );
                         return (
                           <td key={i} className="px-4 py-2">
                             {val || "-"}
@@ -184,6 +189,10 @@ export function GenericTable<T>({
                                   };
 
                                   try {
+                                    const res = await api.post(
+                                      "/consignees",
+                                      mapped
+                                    );
                                     toast.success("Copied to consignee");
                                   } catch (error) {
                                     toast.error("Failed to copy");

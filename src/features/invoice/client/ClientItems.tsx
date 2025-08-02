@@ -75,7 +75,6 @@ interface ClientItemsManagerProps {
     unitPrice: string;
     hsnCode: string;
     quantity: number;
-    total: string;
   }) => void;
   onBulkSelect: (
     items: Array<{
@@ -83,7 +82,6 @@ interface ClientItemsManagerProps {
       unitPrice: string;
       hsnCode: string;
       quantity: number;
-      total: string;
     }>
   ) => void;
   selectedItems: (
@@ -92,7 +90,6 @@ interface ClientItemsManagerProps {
       unitPrice: string;
       hsnCode: string;
       quantity: number;
-      total: string;
     }>
   ) => void;
 }
@@ -187,6 +184,9 @@ export default function ClientItems({
         bVal = (bVal as string).toLowerCase();
       }
 
+      if (aVal === undefined) return -1;
+      if (bVal === undefined) return 1;
+
       if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
       if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
@@ -238,9 +238,10 @@ export default function ClientItems({
 
   const handleUpdateItem = async () => {
     try {
+      if (!editingItem) return null;
       const updatedItem = {
         ...editingItem,
-        unitPrice: Number.parseFloat(editingItem.unitPrice),
+        unitPrice: Number.parseFloat(String(editingItem?.unitPrice)),
       };
       const res = await api.patch(
         `client-items/${editingItem._id}`,
@@ -285,13 +286,12 @@ export default function ClientItems({
     );
   };
 
-  const handleSelectItem = (item: any) => {
+  const handleSelectItem = (item: ClientItem) => {
     onItemSelect({
       description: item.description,
       unitPrice: item.unitPrice.toString(),
       hsnCode: item.hsnCode,
       quantity: 1,
-      total: item.unitPrice.toString(),
     });
   };
 
