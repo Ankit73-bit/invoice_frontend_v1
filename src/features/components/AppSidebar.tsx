@@ -82,7 +82,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const companyObj =
     typeof user?.company === "string"
-      ? companies.find((c) => c._id === user.company)
+      ? companies.find((c) => c._id === user.company._id)
       : user?.company;
 
   useEffect(() => {

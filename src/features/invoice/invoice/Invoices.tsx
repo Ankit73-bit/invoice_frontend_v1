@@ -155,7 +155,7 @@ export default function Invoices() {
   const { clients } = useClientStore();
   const navigate = useNavigate();
 
-  const { fetchInvoices, deleteInvoice, updateInvoiceStatus, loading, error } =
+  const { fetchInvoices, deleteInvoice, updateInvoiceStatus, loading } =
     useInvoiceAPI();
 
   // Use analytics hook for dashboard stats

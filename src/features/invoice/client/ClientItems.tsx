@@ -67,6 +67,8 @@ import { api } from "@/lib/api";
 import { useCompanyContext } from "@/store/companyContextStore";
 import { toast } from "react-toastify";
 import type { ClientItem } from "@/lib/types";
+import type { FieldArrayWithId } from "react-hook-form";
+import type { FormValues } from "../invoice/CreateInvoiceBase";
 
 interface ClientItemsManagerProps {
   clientId: string | undefined;
@@ -75,6 +77,7 @@ interface ClientItemsManagerProps {
     unitPrice: string;
     hsnCode: string;
     quantity: number;
+    total: string;
   }) => void;
   onBulkSelect: (
     items: Array<{
@@ -82,16 +85,10 @@ interface ClientItemsManagerProps {
       unitPrice: string;
       hsnCode: string;
       quantity: number;
+      total: string;
     }>
   ) => void;
-  selectedItems: (
-    items: Array<{
-      description: string;
-      unitPrice: string;
-      hsnCode: string;
-      quantity: number;
-    }>
-  ) => void;
+  selectedItems: FieldArrayWithId<FormValues, "items", "id">[];
 }
 
 export default function ClientItems({
@@ -287,12 +284,31 @@ export default function ClientItems({
   };
 
   const handleSelectItem = (item: ClientItem) => {
+    const total = (item.unitPrice * 1).toString();
     onItemSelect({
       description: item.description,
       unitPrice: item.unitPrice.toString(),
       hsnCode: item.hsnCode,
       quantity: 1,
+      total,
     });
+  };
+
+  const handleAddSelectedItems = () => {
+    const selectedItems = filteredAndSortedItems.filter((item) =>
+      selectedItemIds.includes(item._id)
+    );
+    const itemsToAdd = selectedItems.map((item) => ({
+      description: item.description,
+      unitPrice: item.unitPrice.toString(),
+      hsnCode: item.hsnCode,
+      quantity: bulkQuantities[item._id] || 1,
+      total: (item.unitPrice * (bulkQuantities[item._id] || 1)).toString(),
+    }));
+
+    onBulkSelect(itemsToAdd);
+    setSelectedItemIds([]);
+    setBulkQuantities({});
   };
 
   const handleItemSelection = (itemId: string, isSelected: boolean) => {
@@ -322,23 +338,6 @@ export default function ClientItems({
 
   const handleQuantityChange = (itemId: string, quantity: number) => {
     setBulkQuantities((prev) => ({ ...prev, [itemId]: Math.max(1, quantity) }));
-  };
-
-  const handleAddSelectedItems = () => {
-    const selectedItems = filteredAndSortedItems.filter((item) =>
-      selectedItemIds.includes(item._id)
-    );
-    const itemsToAdd = selectedItems.map((item) => ({
-      description: item.description,
-      unitPrice: item.unitPrice.toString(),
-      hsnCode: item.hsnCode,
-      quantity: bulkQuantities[item._id] || 1,
-      total: (item.unitPrice * (bulkQuantities[item._id] || 1)).toString(),
-    }));
-
-    onBulkSelect(itemsToAdd);
-    setSelectedItemIds([]);
-    setBulkQuantities({});
   };
 
   const handleAddAllItems = () => {
