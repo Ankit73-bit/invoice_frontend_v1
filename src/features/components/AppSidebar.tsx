@@ -80,11 +80,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
   const { companies } = useCompanies();
 
+  const companyObj =
+    typeof user?.company === "string"
+      ? companies.find((c) => c._id === user.company)
+      : user?.company;
+
   useEffect(() => {
-    if (!selectedCompanyId && user?.company?._id) {
-      setSelectedCompanyId(user.company._id);
+    if (!selectedCompanyId && companyObj?._id) {
+      setSelectedCompanyId(companyObj._id);
     }
-  }, [user, selectedCompanyId, setSelectedCompanyId]);
+  }, [companyObj, selectedCompanyId, setSelectedCompanyId]);
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -113,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">
-                  {user?.company?.companyName ?? "Paras Invoice"}
+                  {companyObj?.companyName ?? "Paras Invoice"}
                 </span>
               </SidebarMenuButton>
             </SidebarMenuItem>

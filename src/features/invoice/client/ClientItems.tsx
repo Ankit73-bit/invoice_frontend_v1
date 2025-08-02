@@ -66,12 +66,35 @@ import { useClientItemStore } from "@/store/clientItemStore";
 import { api } from "@/lib/api";
 import { useCompanyContext } from "@/store/companyContextStore";
 import { toast } from "react-toastify";
+import type { ClientItem } from "@/lib/types";
 
 interface ClientItemsManagerProps {
   clientId: string;
-  onItemSelect: (item: any) => void;
-  onBulkSelect: (items: any[]) => void;
-  selectedItems: any[];
+  onItemSelect: (item: {
+    description: string;
+    unitPrice: string;
+    hsnCode: string;
+    quantity: number;
+    total: string;
+  }) => void;
+  onBulkSelect: (
+    items: Array<{
+      description: string;
+      unitPrice: string;
+      hsnCode: string;
+      quantity: number;
+      total: string;
+    }>
+  ) => void;
+  selectedItems: (
+    items: Array<{
+      description: string;
+      unitPrice: string;
+      hsnCode: string;
+      quantity: number;
+      total: string;
+    }>
+  ) => void;
 }
 
 export default function ClientItems({
@@ -84,7 +107,7 @@ export default function ClientItems({
   const { addItem, updateItem, deleteItem } = useClientItemStore();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<ClientItem | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"table" | "cards" | "grouped">(
     "table"
