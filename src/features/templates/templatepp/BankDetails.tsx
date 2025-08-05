@@ -10,11 +10,15 @@ function BankDetails({ bankDetails }: BankDetailsProps) {
       padding: 4,
       lineHeight: 1,
     },
+    bankLabel: {
+      fontStyle: "italic",
+      color: "#0096FF",
+    },
   });
 
   return (
     <View style={bankDetailsStyle.bankDetails}>
-      <Text>Our Bank Details</Text>
+      <Text style={bankDetailsStyle.bankLabel}>Our Bank Details</Text>
       <Text>Bank Name: {bankDetails?.bankName}</Text>
       <Text>Account No: {bankDetails?.accNo}</Text>
       <Text>IFSC Code: {bankDetails?.ifsc}</Text>

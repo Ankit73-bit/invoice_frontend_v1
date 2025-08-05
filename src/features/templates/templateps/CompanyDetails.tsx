@@ -14,6 +14,9 @@ const companyStyles = StyleSheet.create({
     fontSize: 10,
     padding: 4,
   },
+  email: {
+    color: "#0096FF",
+  },
 });
 
 interface companyProps {
@@ -27,9 +30,9 @@ function CompanyDetails({ company }: companyProps) {
       <Text>{company?.address?.add1}</Text>
       <Text>{company?.address?.add2}</Text>
       <Text>{`${company?.address?.add3}, ${company?.address?.pinCode}`}</Text>
-      <Text>{company?.address?.contact}</Text>
-      <Text>{company?.address?.mail}</Text>
-      <Text>{company?.address?.gstno}</Text>
+      <Text>{company?.contact}</Text>
+      <Text style={companyStyles.email}>{company?.email}</Text>
+      <Text>GST - {company?.address?.gstNo}</Text>
     </View>
   );
 }
