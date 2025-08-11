@@ -71,6 +71,19 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
+            name="detailsSchema.dueDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Due Date</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="15 Days" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="financialYear"
             render={({ field }) => (
               <FormItem>

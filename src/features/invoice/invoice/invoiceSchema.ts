@@ -13,6 +13,7 @@ export const invoiceSchema = z.object({
     purchaseNo: z.string().optional(),
     purchaseDate: z.date().optional(),
     termsOfDelivery: z.string().optional(),
+    dueDate: z.string().optional(),
     // Dispatch
     dispatchDetails: z.object({
       dispatchNo: z.string().optional(),

@@ -3,6 +3,7 @@ import InvoiceNoDetails from "./InvoiceNoDetails";
 import ReferenceDetails from "./ReferenceDetails";
 import PurchaseDetails from "./PurchaseDetails";
 import DispatchDetails from "./DispatchDetails";
+import DueDetails from "./DueDetails";
 
 const invoiceDetails = StyleSheet.create({
   container: {
@@ -35,6 +36,7 @@ function InvoiceDetails({ invoice }: invoiceProps) {
       <DispatchDetails
         dispatchDetails={invoice?.detailsSchema?.dispatchDetails}
       />
+      <DueDetails dueDate={invoice?.detailsSchema?.dueDate} />
     </View>
   );
 }

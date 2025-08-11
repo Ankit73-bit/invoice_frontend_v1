@@ -47,6 +47,7 @@ export interface DetailsSchema {
   otherReferences?: string;
   purchaseNo?: string;
   purchaseDate?: string;
+  dueDate?: string;
   termsOfDelivery?: string | undefined;
   dispatchDetails: {
     dispatchNo?: string;
@@ -148,9 +149,10 @@ export interface ClientItem {
 export interface InvoiceSummary {
   totalInvoices: number;
   totalRevenue: number;
-  paid: number;
-  pending: number;
-  overdue: number;
+  paid: { count: number; amount: number };
+  pending: { count: number; amount: number };
+  overdue: { count: number; amount: number };
+  lastUpdated: string;
 }
 
 export interface MonthlyStats {

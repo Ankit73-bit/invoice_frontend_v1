@@ -69,12 +69,12 @@ import { useAuthStore } from "@/store/authStore";
 import { useCompanyContext } from "@/store/companyContextStore";
 import { ConfirmDeleteDialog } from "@/features/components/ConfirmDeleteDialog";
 import { useCompanies } from "@/hooks/useCompanies";
-import { useClientStore } from "@/store/clientStore";
 import { useInvoiceAPI } from "@/hooks/apiIntegration";
 import { useNavigate } from "react-router-dom";
 import { InvoicePreviewDialog } from "@/features/components/InvoicePreviewDialog";
 import { downloadPdfMap } from "./downloadPdfMap";
 import { downloadInvoicePDF } from "@/lib/utils";
+import { useClients } from "@/hooks/useClients";
 
 // Types based on your backend data structure
 interface Invoice {
@@ -152,15 +152,24 @@ export default function Invoices() {
   const user = useAuthStore((state) => state.user);
   const { selectedCompanyId, setSelectedCompanyId } = useCompanyContext();
   const { companies } = useCompanies();
-  const { clients } = useClientStore();
+  const { clients } = useClients(
+    filters.company !== "All Companies" ? filters.company : undefined
+  );
+
   const navigate = useNavigate();
 
   const { fetchInvoices, deleteInvoice, updateInvoiceStatus, loading } =
     useInvoiceAPI();
 
   // Use analytics hook for dashboard stats
-  const { summary, loading: analyticsLoading } = useInvoiceAnalytics(
-    user?.role === "admin" ? selectedCompanyId : ""
+  const {
+    summary,
+    loading: analyticsLoading,
+    refreshAnalytics,
+  } = useInvoiceAnalytics(
+    user?.role === "admin" && filters.company !== "All Companies"
+      ? filters.company
+      : undefined
   );
 
   useEffect(() => {
@@ -196,7 +205,7 @@ export default function Invoices() {
     searchQuery,
     currentPage,
     pageSize,
-    selectedCompanyId, // Add this to dependencies
+    selectedCompanyId,
     user?.role,
   ]);
 
@@ -243,6 +252,15 @@ export default function Invoices() {
       result = result.filter(
         (invoice) => invoice.client._id === filters.client
       );
+      if (
+        user?.role === "admin" &&
+        filters.company &&
+        filters.company !== "All Companies"
+      ) {
+        result = result.filter(
+          (invoice) => invoice.company._id === filters.company
+        );
+      }
     }
 
     // Modify company filter logic
@@ -333,36 +351,40 @@ export default function Invoices() {
     if (summary) {
       return {
         total: { amount: summary.totalRevenue, count: summary.totalInvoices },
-        paid: { amount: 0, count: summary.paid },
-        pending: { amount: 0, count: summary.pending },
-        overdue: { amount: 0, count: summary.overdue },
+        paid: { amount: summary.paid.amount, count: summary.paid.count },
+        pending: {
+          amount: summary.pending.amount,
+          count: summary.pending.count,
+        },
+        overdue: {
+          amount: summary.overdue.amount,
+          count: summary.overdue.count,
+        },
       };
     }
 
-    // Fallback to local calculation
-    const total = invoices.reduce((sum, inv) => sum + inv.grossAmount, 0);
-    const paid = invoices
-      .filter((inv) => inv.status === "Paid")
-      .reduce((sum, inv) => sum + inv.grossAmount, 0);
-    const pending = invoices
-      .filter((inv) => inv.status === "Pending")
-      .reduce((sum, inv) => sum + inv.grossAmount, 0);
-    const overdue = invoices
-      .filter((inv) => inv.status === "Overdue")
-      .reduce((sum, inv) => sum + inv.grossAmount, 0);
-
+    // fallback calculation — same shape as backend
     return {
-      total: { amount: total, count: invoices.length },
+      total: {
+        amount: invoices.reduce((sum, inv) => sum + inv.grossAmount, 0),
+        count: invoices.length,
+      },
       paid: {
-        amount: paid,
+        amount: invoices
+          .filter((inv) => inv.status === "Paid")
+          .reduce((sum, inv) => sum + inv.grossAmount, 0),
         count: invoices.filter((inv) => inv.status === "Paid").length,
       },
       pending: {
-        amount: pending,
+        amount: invoices
+          .filter((inv) => inv.status === "Pending")
+          .reduce((sum, inv) => sum + inv.grossAmount, 0),
         count: invoices.filter((inv) => inv.status === "Pending").length,
       },
       overdue: {
-        amount: overdue,
+        amount: invoices
+          .filter((inv) => inv.status === "Overdue")
+          .reduce((sum, inv) => sum + inv.grossAmount, 0),
         count: invoices.filter((inv) => inv.status === "Overdue").length,
       },
     };
@@ -437,14 +459,24 @@ export default function Invoices() {
     try {
       await updateInvoiceStatus(invoiceId, status);
       toast.success("Invoice status updated successfully");
-      // Refresh data
+      // Refresh data with current filters
       const data = await fetchInvoices({
         page: currentPage,
         limit: pageSize,
         search: searchQuery,
-        ...filters,
+        status: filters.status !== "All Status" ? filters.status : undefined,
+        client: filters.client !== "All Clients" ? filters.client : undefined,
+        company:
+          user?.role === "admin" && filters.company !== "All Companies"
+            ? filters.company
+            : undefined,
+        dateFrom: filters.dateRange?.from?.toISOString(),
+        dateTo: filters.dateRange?.to?.toISOString(),
+        amountMin: filters.amountRange?.min,
+        amountMax: filters.amountRange?.max,
       });
       setInvoices(data?.data?.invoices || []);
+      refreshAnalytics();
     } catch (err) {
       toast.error("Failed to update invoice status");
     }
@@ -534,10 +566,7 @@ export default function Invoices() {
     setFilters({
       status: "All Status",
       client: "All Clients",
-      company:
-        user?.role === "admin"
-          ? selectedCompanyId || "All Companies"
-          : "All Companies",
+      company: user?.role === "admin" ? "All Companies" : "All Companies",
       dueStatus: "All Due Status",
     });
     setSearchQuery("");
