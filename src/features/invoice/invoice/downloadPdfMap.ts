@@ -9,8 +9,8 @@ export const downloadPdfMap: Record<
   string,
   React.ComponentType<DocumentProps & any>
 > = {
-  "686229f9f8998a2972ba8d7a": InvoicePDFPS,
-  "685e835863244aefe1b2820b": InvoicePDFPP,
+  "689af187ba41e292ec4ca2f1": InvoicePDFPS,
+  "689af187ba41e292ec4ca2f2": InvoicePDFPP,
   Default: InvoicePDFPS,
 };
 
