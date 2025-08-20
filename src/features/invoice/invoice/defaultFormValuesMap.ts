@@ -4,8 +4,20 @@ import type { FormValues } from "./CreateInvoiceBase";
 const baseDefaults: Partial<FormValues> = {
   financialYear: "25-26",
   status: "Pending",
-  detailsSchema: {
-    dispatchDetails: {},
+  details: {
+    referenceNo: "",
+    referenceDate: undefined,
+    otherReferences: "",
+    purchaseNo: "",
+    purchaseDate: undefined,
+    termsOfDelivery: "",
+    dueDate: "",
+    dispatchDetails: {
+      dispatchNo: "",
+      date: undefined,
+      through: "",
+      destination: "",
+    },
   },
   roundingOff: 0,
   hrDescription: { year: "", month: "", hrCode: "", hrName: "" },

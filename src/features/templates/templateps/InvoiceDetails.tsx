@@ -26,17 +26,15 @@ function InvoiceDetails({ invoice }: invoiceProps) {
         invoiceDate={invoice?.date}
       />
       <ReferenceDetails
-        referenceNo={invoice?.detailsSchema?.referenceNo}
-        referenceDate={invoice?.detailsSchema?.referenceDate}
+        referenceNo={invoice?.details?.referenceNo}
+        referenceDate={invoice?.details?.referenceDate}
       />
       <PurchaseDetails
-        purchaseNo={invoice?.detailsSchema?.purchaseNo}
-        purchaseDate={invoice?.detailsSchema?.purchaseDate}
+        purchaseNo={invoice?.details?.purchaseNo}
+        purchaseDate={invoice?.details?.purchaseDate}
       />
-      <DispatchDetails
-        dispatchDetails={invoice?.detailsSchema?.dispatchDetails}
-      />
-      <DueDetails dueDate={invoice?.detailsSchema?.dueDate} />
+      <DispatchDetails dispatchDetails={invoice?.details?.dispatchDetails} />
+      <DueDetails dueDate={invoice?.details?.dueDate} />
     </View>
   );
 }

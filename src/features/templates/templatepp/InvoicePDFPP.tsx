@@ -85,9 +85,9 @@ export const InvoicePDFPP = ({
           <ConsigneeDetails consignee={consignee} invoice={invoice} />
           <ClientDetails client={client} />
         </View>
-        {invoice?.detailsSchema?.termsOfDelivery && (
+        {invoice?.details?.termsOfDelivery && (
           <View style={styles.section3}>
-            <TermsOfDelivery terms={invoice.detailsSchema.termsOfDelivery} />
+            <TermsOfDelivery terms={invoice.details.termsOfDelivery} />
           </View>
         )}
         <View style={styles.section2}>
