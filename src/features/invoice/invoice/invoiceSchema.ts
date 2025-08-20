@@ -5,7 +5,7 @@ export const invoiceSchema = z.object({
   date: z.date(),
   financialYear: z.string().optional(),
 
-  detailsSchema: z.object({
+  details: z.object({
     // Reference & Delivery
     referenceNo: z.string().optional(),
     referenceDate: z.date().optional(),
