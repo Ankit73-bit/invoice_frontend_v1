@@ -3,8 +3,10 @@ import { create } from "zustand";
 
 interface ConsigneeStore {
   consignees: Consignee[];
-  setConsignees: (consignees: Consignee[]) => void;
-  addConsignee: (consignees: Consignee) => void;
+  setConsignees: (
+    updater: Consignee[] | ((prev: Consignee[]) => Consignee[])
+  ) => void;
+  addConsignee: (consignee: Consignee) => void;
   selectedConsignee: Consignee | null;
   setSelectedConsignee: (consignee: Consignee | null) => void;
   updateConsignee: (updated: Consignee) => void;
@@ -13,15 +15,21 @@ interface ConsigneeStore {
 
 export const useConsigneeStore = create<ConsigneeStore>((set) => ({
   consignees: [],
-  setConsignees: (consignees) => set({ consignees }),
+  setConsignees: (updater) =>
+    set((state) => ({
+      consignees:
+        typeof updater === "function"
+          ? (updater as (prev: Consignee[]) => Consignee[])(state.consignees)
+          : updater,
+    })),
   addConsignee: (consignee) =>
     set((state) => ({ consignees: [...state.consignees, consignee] })),
   selectedConsignee: null,
   setSelectedConsignee: (consignee) => set({ selectedConsignee: consignee }),
-  updateConsignee: (updateConsignee) =>
+  updateConsignee: (updated) =>
     set((state) => ({
       consignees: state.consignees.map((c) =>
-        c._id === updateConsignee._id ? updateConsignee : c
+        c._id === updated._id ? updated : c
       ),
     })),
   removeConsignee: (id) =>
