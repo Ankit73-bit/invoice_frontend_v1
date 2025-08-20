@@ -62,7 +62,7 @@ export interface Invoice {
   invoiceNo: string;
   date: string;
   financialYear: string;
-  detailsSchema: DetailsSchema;
+  details: DetailsSchema;
   hrDescription?: HRDescription;
   company: string; // id reference
   from: string;
