@@ -71,7 +71,7 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.dueDate"
+            name="details.dueDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Due Date</FormLabel>
@@ -97,7 +97,7 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.referenceNo"
+            name="details.referenceNo"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Reference No</FormLabel>
@@ -110,7 +110,7 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.referenceDate"
+            name="details.referenceDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Reference Date</FormLabel>
@@ -151,7 +151,7 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.otherReferences"
+            name="details.otherReferences"
             render={({ field }) => (
               <FormItem className="md:col-span-3">
                 <FormLabel>References</FormLabel>
@@ -172,7 +172,7 @@ export function InvoiceBasicInfo({ form }: Props) {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="detailsSchema.purchaseNo"
+            name="details.purchaseNo"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Purchase Order No</FormLabel>
@@ -185,7 +185,7 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.purchaseDate"
+            name="details.purchaseDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Purchase Date</FormLabel>
@@ -204,7 +204,7 @@ export function InvoiceBasicInfo({ form }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.termsOfDelivery"
+            name="details.termsOfDelivery"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel>Terms of Delivery</FormLabel>

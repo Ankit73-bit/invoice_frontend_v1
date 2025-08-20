@@ -106,7 +106,7 @@ export function InvoiceParties({ form, clients, consignees }: Props) {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="detailsSchema.dispatchDetails.dispatchNo"
+            name="details.dispatchDetails.dispatchNo"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dispatch Number</FormLabel>
@@ -119,7 +119,7 @@ export function InvoiceParties({ form, clients, consignees }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.dispatchDetails.date"
+            name="details.dispatchDetails.date"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dispatch Date</FormLabel>
@@ -138,7 +138,7 @@ export function InvoiceParties({ form, clients, consignees }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.dispatchDetails.through"
+            name="details.dispatchDetails.through"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dispatch Through</FormLabel>
@@ -151,7 +151,7 @@ export function InvoiceParties({ form, clients, consignees }: Props) {
           />
           <FormField
             control={form.control}
-            name="detailsSchema.dispatchDetails.destination"
+            name="details.dispatchDetails.destination"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Destination</FormLabel>

@@ -80,7 +80,7 @@ export function CreateInvoiceBase({
       invoiceNo: "INV/25-26/001",
       date: new Date(),
       company: selectedCompanyId ?? "",
-      detailsSchema: {
+      details: {
         referenceNo: "",
         referenceDate: undefined,
         otherReferences: "",
