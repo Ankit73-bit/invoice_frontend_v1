@@ -7,6 +7,7 @@ const descriptionStyle = StyleSheet.create({
     flexDirection: "row",
     textAlign: "center",
     position: "relative",
+    fontSize: "9px",
   },
   description: {
     flexWrap: "wrap",

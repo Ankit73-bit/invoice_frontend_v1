@@ -4,6 +4,7 @@ const noteStyle = StyleSheet.create({
   container: {
     display: "flex",
     flexDirection: "row",
+    fontSize: "8px",
   },
   description: {
     paddingTop: 20,

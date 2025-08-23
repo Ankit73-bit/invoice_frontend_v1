@@ -5,12 +5,12 @@ import ConsigneeDetails from "./ConsgineeDetails";
 import ClientDetails from "./ClientDetails";
 import TermsOfDelivery from "./TermsOfDelivery";
 import DescriptionHead from "./DescriptionHead";
-import Description from "./Description";
 import AmountDetails from "./AmountDetails";
 import Declaration from "./Declaration";
 import HrDescription from "./HrDescription";
 import type { DocumentProps } from "@react-pdf/renderer";
 import type { Invoice } from "@/lib/types";
+import Description from "./Description";
 
 // Register fonts if needed
 // Font.register({
