@@ -23,6 +23,7 @@ function ClientDetails({ client }: clientProps) {
     <View style={clientStyles.container}>
       <Text>Client:</Text>
       <Text style={clientStyles.clientName}>{client?.clientCompanyName}</Text>
+      {client?.clientName && <Text>{client.clientName}</Text>}
       {client?.address?.add1 && <Text>{client.address.add1}</Text>}
       {client?.address?.add2 && <Text>{client.address.add2}</Text>}
       {client?.address?.add3 && <Text>{client.address.add3}</Text>}

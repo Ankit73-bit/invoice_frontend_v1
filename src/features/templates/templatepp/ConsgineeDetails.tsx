@@ -40,6 +40,7 @@ function ConsigneeDetails({ consignee, invoice }: consigneeProps) {
       <Text style={consigneeStyles.consigneeName}>
         {consignee.consigneeCompanyName}
       </Text>
+      {consignee?.consigneeName && <Text>{consignee.consigneeName}</Text>}
       {consignee?.address?.add1 && <Text>{consignee.address.add1}</Text>}
       {consignee?.address?.add2 && <Text>{consignee.address.add2}</Text>}
       {consignee?.address?.add3 && <Text>{consignee.address.add3}</Text>}
