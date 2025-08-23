@@ -46,7 +46,7 @@ export const invoiceSchema = z.object({
       z.object({
         description: z.string().min(1, "Description is required"),
         hsnCode: z.string().min(1, "HSN Code is required"),
-        quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+        quantity: z.coerce.number(),
         unitPrice: z.union([z.string(), z.number()]),
         total: z.union([z.string(), z.number()]),
       })
