@@ -109,7 +109,7 @@ interface Invoice {
     cgst?: number;
     sgst?: number;
     igst?: number;
-    totalGST: number;
+    totalGstAmount: number;
   };
   inWords: string;
 }
@@ -493,7 +493,7 @@ export default function Invoices() {
       Client: invoice.client.clientCompanyName,
       ...(user?.role === "admin" && { Company: invoice.company.companyName }),
       "Amount Before GST": invoice.totalBeforeGST,
-      "GST Amount": invoice.gstDetails?.totalGST || 0,
+      "GST Amount": invoice.gstDetails?.totalGstAmount || 0,
       "Gross Amount": invoice.grossAmount,
       Status: invoice.status,
       "Due Date": invoice.dueDate
@@ -1216,7 +1216,9 @@ export default function Invoices() {
                           </div>
                           <div className="text-xs text-muted-foreground">
                             +GST:{" "}
-                            {formatCurrency(invoice.gstDetails?.totalGST || 0)}
+                            {formatCurrency(
+                              invoice.gstDetails?.totalGstAmount || 0
+                            )}
                           </div>
                         </div>
                       </TableCell>
