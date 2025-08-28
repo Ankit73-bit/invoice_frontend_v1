@@ -117,6 +117,7 @@ export function CreateInvoiceBase({
   );
 
   // Sync totals to form
+  // In CreateInvoiceBase.tsx, update the useEffect to handle GST changes
   useEffect(() => {
     form.setValue("totalBeforeGST", calculatedTotals.totalBeforeGST);
     form.setValue("grossAmount", calculatedTotals.grossAmount);
@@ -181,6 +182,7 @@ export function CreateInvoiceBase({
               item.unitPrice === "-" ? "-" : item.unitPrice?.toString() || "0",
             quantity: Number(item.quantity),
             total: item.total?.toString() || "0",
+            applyGST: item.applyGST || true,
           })),
         });
       } catch (err) {
@@ -214,6 +216,7 @@ export function CreateInvoiceBase({
           item.unitPrice === "-" ? "-" : parseFloat(String(item.unitPrice)),
         quantity: Number(item.quantity),
         total: Number(item.total),
+        applyGST: item.applyGST,
       }));
 
       const payload = {

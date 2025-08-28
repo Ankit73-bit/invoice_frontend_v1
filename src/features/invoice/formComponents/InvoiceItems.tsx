@@ -54,6 +54,7 @@ export function InvoiceItems({
                 quantity: 1,
                 unitPrice: "0",
                 total: "0",
+                applyGST: true,
               })
             }
           >
@@ -84,6 +85,7 @@ export function InvoiceItems({
         <div className="space-y-2">
           {/* Header Row (Desktop) */}
           <div className="hidden md:grid grid-cols-12 gap-4 p-3 bg-muted/50 rounded-lg text-sm font-medium">
+            <div className="col-span-1">GST</div>
             <div className="col-span-4">Description</div>
             <div className="col-span-2">HSN Code</div>
             <div className="col-span-1">Qty</div>
@@ -94,129 +96,154 @@ export function InvoiceItems({
 
           {/* Item Rows */}
           <div className="space-y-2">
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="group border rounded-lg p-4 hover:bg-muted/30 transition-colors"
-              >
-                <div className="grid grid-cols-12 gap-4 items-start">
-                  <div className="col-span-4">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.description`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              {...field}
-                              placeholder="Item description"
-                              className="min-h-[40px] resize-none"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.hsnCode`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input {...field} placeholder="HSN" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="text"
-                              {...field}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value) || 0;
-                                field.onChange(val);
-                                updateItemTotal(index, val);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.unitPrice`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="0.00"
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                field.onChange(val);
-                                updateItemTotal(index, undefined, val);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.total`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? "0"}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                                if (!manualTotalIndexes.includes(index)) {
-                                  setManualTotalIndexes((prev) => [
-                                    ...prev,
-                                    index,
-                                  ]);
-                                }
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => remove(index)}
-                      disabled={fields.length === 1}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+            {fields.map((field, index) => {
+              // const applyGST = form.watch(`items.${index}.applyGST`);
+              return (
+                <div
+                  key={field.id}
+                  className="group border rounded-lg p-4 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="grid grid-cols-12 gap-4 items-start">
+                    <div className="col-span-1 flex items-center justify-center">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.applyGST`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={(e) => {
+                                  field.onChange(e.target.checked);
+                                  // Recalculate totals when GST status changes
+                                  updateItemTotal(index);
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-4">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.description`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                placeholder="Item description"
+                                className="min-h-[40px] resize-none"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.hsnCode`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input {...field} placeholder="HSN" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.quantity`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                type="text"
+                                {...field}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value) || 0;
+                                  field.onChange(val);
+                                  updateItemTotal(index, val);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.unitPrice`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="0.00"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  field.onChange(val);
+                                  updateItemTotal(index, undefined, val);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.total`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                value={field.value ?? "0"}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                  if (!manualTotalIndexes.includes(index)) {
+                                    setManualTotalIndexes((prev) => [
+                                      ...prev,
+                                      index,
+                                    ]);
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -256,6 +283,7 @@ export function InvoiceItems({
                     quantity: 1,
                     unitPrice: "0",
                     total: "0",
+                    applyGST: true,
                   })
                 }
               >

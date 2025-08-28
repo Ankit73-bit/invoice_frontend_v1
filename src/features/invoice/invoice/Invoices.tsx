@@ -104,6 +104,7 @@ interface Invoice {
     quantity: number;
     unitPrice: number | string;
     total: number;
+    applyGST: boolean;
   }>;
   gstDetails?: {
     cgst?: number;

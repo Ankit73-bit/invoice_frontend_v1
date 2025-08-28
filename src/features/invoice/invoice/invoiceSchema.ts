@@ -1,5 +1,7 @@
 import z from "zod";
 
+export type FormValues = z.infer<typeof invoiceSchema>;
+
 export const invoiceSchema = z.object({
   invoiceNo: z.string(),
   date: z.date(),
@@ -38,17 +40,18 @@ export const invoiceSchema = z.object({
   company: z.string(),
   client: z.string().min(1, "Client is required"),
   consignee: z.string().min(1, "Consignee is required"),
-  createdBy: z.string(),
+  createdBy: z.any(),
 
   // Items
   items: z
     .array(
       z.object({
         description: z.string().min(1, "Description is required"),
-        hsnCode: z.string().min(1, "HSN Code is required"),
+        hsnCode: z.string(),
         quantity: z.coerce.number(),
         unitPrice: z.union([z.string(), z.number()]),
         total: z.union([z.string(), z.number()]),
+        applyGST: z.boolean().default(true),
       })
     )
     .min(1, "At least one item is required"),

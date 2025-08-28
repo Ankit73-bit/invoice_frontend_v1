@@ -47,5 +47,6 @@ export function normalizeItemsForPDF(items: FormValues["items"]) {
     quantity: Number(item.quantity), // assumes quantity is string|number; Number(...) coerces safely
     unitPrice: item.unitPrice === "-" ? "-" : toNumber(item.unitPrice), // handles string or number
     total: toNumber(item.total),
+    applyGST: true,
   }));
 }

@@ -78,6 +78,7 @@ interface ClientItemsManagerProps {
     hsnCode: string;
     quantity: number;
     total: string;
+    applyGST: boolean;
   }) => void;
   onBulkSelect: (
     items: Array<{
@@ -86,6 +87,7 @@ interface ClientItemsManagerProps {
       hsnCode: string;
       quantity: number;
       total: string;
+      applyGST: boolean;
     }>
   ) => void;
   selectedItems: FieldArrayWithId<FormValues, "items", "id">[];
@@ -291,6 +293,7 @@ export default function ClientItems({
       hsnCode: item.hsnCode,
       quantity: 1,
       total,
+      applyGST: true,
     });
   };
 
@@ -304,6 +307,7 @@ export default function ClientItems({
       hsnCode: item.hsnCode,
       quantity: bulkQuantities[item._id] || 1,
       total: (item.unitPrice * (bulkQuantities[item._id] || 1)).toString(),
+      applyGST: true,
     }));
 
     onBulkSelect(itemsToAdd);
@@ -347,6 +351,7 @@ export default function ClientItems({
       hsnCode: item.hsnCode,
       quantity: 1,
       total: item.unitPrice.toString(),
+      applyGST: true,
     }));
 
     onBulkSelect(itemsToAdd);

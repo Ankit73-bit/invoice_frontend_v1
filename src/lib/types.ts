@@ -4,6 +4,7 @@ export interface InvoiceItem {
   unitPrice?: string | number;
   quantity?: number;
   total?: string | number;
+  applyGST: boolean;
 }
 
 export type FormInvoiceItem = {
@@ -12,6 +13,7 @@ export type FormInvoiceItem = {
   quantity: number;
   unitPrice: string | number;
   total: string | number;
+  applyGST: boolean;
 };
 
 export interface GSTDetails {
@@ -144,6 +146,7 @@ export interface ClientItem {
   hsnCode: string;
   category: string;
   lastUsed?: string;
+  applyGST?: boolean;
 }
 
 export interface InvoiceSummary {
@@ -180,4 +183,5 @@ export interface CalculatedTotals {
   totalAmount: number;
   roundingOff: number;
   grossAmount: number;
+  totalTaxable: number;
 }

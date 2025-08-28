@@ -28,6 +28,7 @@ const baseDefaults: Partial<FormValues> = {
       quantity: 1,
       unitPrice: "0",
       total: "0",
+      applyGST: true,
     },
   ],
   gstDetails: {
